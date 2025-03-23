@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new course in the database
-    const newCourse: ICourse | null = await Course.create({
+    let newCourse: ICourse | null = await Course.create({
       title,
       doctorId: request?.user?._id
     });
@@ -58,11 +58,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let createdCourse: ICourse | null = await Course.findById(newCourse._id).populate([
+      {
+        path: "students",
+        model: "User",
+        select: "name email"
+      },
+      {
+        path: "doctorId",
+        model: "User",
+        select: "name email"
+      }
+    ]);;    
+
     return NextResponse.json(
       {
         success: true,
         msg: "تم إنشاء الكورس بنجاح",
-        data: newCourse,
+        data: createdCourse,
       },
       { status: 200 }
     );
@@ -102,9 +115,7 @@ export async function GET(request: NextRequest) {
 
     //For students
     const userId = request?.user?._id;
-    let query: any = {
-      students: userId
-    }
+    let query: any = {}
 
     // For doctors
     if (role === UserRolesEnum.doctor) { 
@@ -113,8 +124,17 @@ export async function GET(request: NextRequest) {
     
     // get all coursers that participation in
     const courses = await Course.find(query)
-      .populate('students', 'name email')
-      .populate('doctorId', 'name email');
+      .populate([
+        { 
+          path: 'students', 
+          model: 'User',
+          select: 'name email' 
+        }, {
+          path: 'doctorId', 
+          model: 'User',
+          select: 'name email'
+        }
+      ])
 
     // Check if creation failed
     if (courses.length <= 0) {

@@ -121,9 +121,22 @@ export async function GET(request: NextRequest) {
     
     // get all sessions that participation in
     const sessions = await Session.find(query)
-      .populate('students', 'name email')
-      .populate('doctorId', 'name email')
-      .populate('courseId', 'title astudents');
+    .populate([
+      { 
+        path: 'students', 
+        model: 'User',
+        select: 'name email' 
+      }, {
+        path: 'doctorId', 
+        model: 'User',
+        select: 'name email'
+      },
+      {
+        path: 'courseId',
+        model: 'Course',
+        select: 'title students'
+      }
+    ]);
 
     // Check if creation failed
     if (sessions.length <= 0) {

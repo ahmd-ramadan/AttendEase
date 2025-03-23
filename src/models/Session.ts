@@ -1,12 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { IUser } from './User';
 
 export interface ISession extends Document {
   title: string;
   startAt: Date;
   endAt: Date;
-  doctorId: string;
+  doctorId: IUser;
   courseId: string;
-  students: string [] 
+  students: IUser[],
+  createdAt: string;
 }
 
 const sessionSchema: Schema = new mongoose.Schema({

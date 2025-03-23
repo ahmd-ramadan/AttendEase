@@ -2,7 +2,9 @@
 import axiosInstance from "./axiosInstance";
 import { ErrorResponse, handleError } from "./errorHandler";
 
-interface ApiResponse<T> {
+export type ResponseTypes<T> = Promise<ApiResponse<T> | ErrorResponse | undefined>;
+
+export interface ApiResponse<T> {
     success: boolean;
     msg: string;
     data: T;

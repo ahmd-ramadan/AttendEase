@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import User, { IUser, UserRolesEnum } from '@/models/User';
 import dbConnect from '@/lib/dbConnection';
-import { generateToken, validatePassword } from '@/utils/auth';
+import { validatePassword } from '@/utils/auth';
 import Token from '@/models/Token';
 import { serialize } from 'cookie';
+import { generateToken } from '@/utils/token';
 
 interface UserRequestBody {
   email: string;
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     //! Generate Token
     const tokenDatabase = await Token.create({ userId: user._id });
     const token = await generateToken({ 
-        tokenId: tokenDatabase._id,
+        tokenId: tokenDatabase.id,
         email: user.email,
         name: user.name,
         role: user.role
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge: 30 * 24 * 60 * 60,
       path: '/', 
     };
     

@@ -1,9 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose'
+import { IUser } from './User';
+import { ISession } from './Session';
 
 export interface ICourse {
     _id: string;
     title: string;
-    students: string []
+    students: IUser[];
+    createdAt: string,
+    doctorId: IUser,
+    sessions?: ISession[]
 }
 
 const courseSchema: Schema = new mongoose.Schema({
