@@ -6,6 +6,7 @@ const TOKEN_EXPIRES_TIME = process.env.NEXT_PUBLIC_TOKEN_EXPIRES_TIME || "30d";
 
 export interface ITokenPayload {
     tokenId: string;
+    userId: string;
     email: string;
     name: string;
     role: UserRolesEnum;

@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     const tokenDatabase = await Token.create({ userId: user._id });
     const token = await generateToken({ 
         tokenId: tokenDatabase.id,
+        userId: user._id.toString(),
         email: user.email,
         name: user.name,
         role: user.role

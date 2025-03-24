@@ -8,13 +8,15 @@ import Spinner from "./Spinner";
 import { CourseUpdateStatusTypes } from "./CoursesLayout";
 
 interface IAddCourseComponentProps {
+    isSingleCourse?: boolean;
     status: CourseUpdateStatusTypes;
     updatedCourse?: ICourse;
-    courses: ICourse[];
-    setCourses: (courses: ICourse[]) => void;
+    setUpdatedCourse?(course: ICourse): void;
+    courses?: ICourse[];
+    setCourses?: (courses: ICourse[]) => void;
 
 }
-const AddCourseComponent = ({ status, updatedCourse, courses, setCourses }: IAddCourseComponentProps) => {
+const AddCourseComponent = ({ isSingleCourse = false, status, updatedCourse, setUpdatedCourse, courses, setCourses }: IAddCourseComponentProps) => {
 
     const [courseTitle, setCourseTitle] = useState<string>(status === 'update' ? updatedCourse?.title || "" : "");
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -43,8 +45,13 @@ const AddCourseComponent = ({ status, updatedCourse, courses, setCourses }: IAdd
             console.log(newCourse);
             if (success) {
                 toast.success(msg || "تم إضافة الكورس بنجاح");
-                if (status === 'add') setCourses([ ...courses, newCourse ]);
-                if (status === 'update') setCourses(courses.map(c => c._id.toString() === newCourse._id.toString() ? newCourse : c));
+                if (isSingleCourse) {
+                    if (status === 'update' && setUpdatedCourse) setUpdatedCourse(newCourse);
+                }
+                else {
+                    if (status === 'add' && courses && setCourses) setCourses([ ...courses, newCourse ]);
+                    if (status === 'update' && courses && setCourses) setCourses(courses.map(c => c._id.toString() === newCourse._id.toString() ? newCourse : c));
+                }
             } else {
                 toast.error(msg ||  "فشلت عملية إضافة كورس جديد");
             }

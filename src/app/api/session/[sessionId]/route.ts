@@ -7,9 +7,11 @@ import { getDistance } from "@/utils/location";
 import Fingerprint, { IFingerprint } from "@/models/Fingerprint";
 
 interface IPostRequestBody {
-    latitude: Number, 
-    longitude: Number,
-    fingerprint: string;
+   location: {
+      latitude: Number; 
+      longitude: Number;
+    };  
+    visitorId: string;
 }
 
 interface IPutRequestBody {
@@ -38,12 +40,38 @@ export async function POST(request: NextRequest) {
     const sessionId: string = request.url.split('/').pop() || '';
 
     //! Get body 
-    const { latitude, longitude, fingerprint }: IPostRequestBody = await request.json();
+    const { location: { latitude, longitude }, visitorId }: IPostRequestBody = await request.json();
+    console.log(latitude, longitude, visitorId)
+    //! Validation 
+    if (!latitude || !longitude || !visitorId) {
+      return NextResponse.json(
+        {
+          success: false,
+          msg: "البيانات غير مكتملة"
+        }, { status: 400 }
+      )
+    }
 
     const studentId: string = request?.user?._id as string;
    
     // Check if session exist
-    const session: ISession | null = await Session.findById(sessionId);
+    const session: ISession | null = await Session.findById(sessionId).populate([
+      {
+        path: "students",
+        model: "User",
+        select: "name email"
+      },
+      {
+        path: "doctorId",
+        model: "User",
+        select: "name email"
+      },
+      {
+        path: "courseId",
+        model: "Course",
+        select: "title students"
+      }
+    ]);
     if (!session) {
       return NextResponse.json(
         {
@@ -60,7 +88,10 @@ export async function POST(request: NextRequest) {
     const classroomLat = 30.0444; // خط العرض لموقع القاعة
     const classroomLon = 31.2357; // خط الطول لموقع القاعة
 
-    const distance = getDistance(+latitude, +longitude, classroomLat, classroomLon);
+    const myHomeLat = 28.4365117;
+    const myHomeLon = 30.7310211;
+
+    const distance = getDistance(+latitude, +longitude, myHomeLat, myHomeLon);
     console.log("Distance: ", distance);
 
     //! For accept at maximum 50 metr
@@ -74,48 +105,76 @@ export async function POST(request: NextRequest) {
     }
     
     //! Check if any one have printfragment
-    const isFingerprintExist: IFingerprint | null= await Fingerprint.findOne({ fingerprint });
+    const isFingerprintExist: IFingerprint | null= await Fingerprint.findOne({ visitorId });
     if (isFingerprintExist && isFingerprintExist?.userId.toString() !== studentId.toString())  {
-        return NextResponse.json(
-            { 
-                success: false,
-                msg: "لا يمكنك تسجيل الحضور .. تسجيل غير مصرح به !"
-            }, { status: 401 }
-        )
+      return NextResponse.json(
+        { 
+          success: false,
+          msg: "لا يمكنك تسجيل الحضور .. أنت تخالف التعليمات!"
+        }, { status: 401 }
+      )
     }
+    
 
     if (!isFingerprintExist) {
-        const newFingerprint = await Fingerprint.create({
-            userId: studentId,
-            fingerprint
-        });
+      const newFingerprint: IFingerprint = await Fingerprint.create({
+        userId: studentId,
+        visitorId
+      });
     }
 
     //! Check if session not start
-    const isSessionNotStart: boolean = session.startAt >= new Date();
+    const isSessionNotStart: boolean = new Date(session.startAt) >= new Date();
     if (isSessionNotStart) {
-        return NextResponse.json(
-            { 
-                success: false,
-                msg: "لايمكنك التسجيل الأن .. فترة التسجبل لم تبدأ بعد"
-            }, { status: 400 }
-        )
+      return NextResponse.json(
+        { 
+          success: false,
+          msg: "لايمكنك التسجيل الأن .. فترة التسجبل لم تبدأ بعد"
+        }, { status: 400 }
+      )
     }
 
     //! Check if session end
-    const isSessionEnd: boolean = session.endAt >= new Date();
+    const isSessionEnd: boolean = new Date(session.endAt) <= new Date();
     if (isSessionEnd) {
-        return NextResponse.json(
-            { 
-                success: false,
-                msg: "لايمكنك التسجيل الأن .. تم إنتهاء فترة التسجبل"
-            }, { status: 400 }
-        )
+      return NextResponse.json(
+          { 
+            success: false,
+            msg: "لايمكنك التسجيل الأن .. تم إنتهاء فترة التسجبل"
+        }, { status: 400 }
+      )
     }
     
     //! Now Student Can record attednd successfully 
-    if (!session.students.includes(studentId)) session.students.push(studentId);
-    await session.save();
+    let newSession: ISession = session;
+    if (!session.students.some(std => std._id.toString() === studentId.toString())) {
+      newSession = await Session.findByIdAndUpdate(session._id, { $push: { students: studentId } }, { new: true }).populate([
+        {
+          path: "students",
+          model: "User",
+          select: "name email"
+        },
+        {
+          path: "doctorId",
+          model: "User",
+          select: "name email"
+        },
+        {
+          path: "courseId",
+          model: "Course",
+          select: "title students"
+        }
+      ]);
+    } else {
+      return NextResponse.json(
+        {
+          success: true,
+          msg: "أنت مُسجل في هذه الجلسة بالفعل",
+          data: newSession,
+        },
+        { status: 200 }
+      );
+    }
 
     // Check if creation failed
     // if (!session) {
@@ -129,7 +188,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         msg: "تم تسجيل الحضور في جلسة الغياب بنجاح",
-        data: session,
+        data: newSession,
       },
       { status: 200 }
     );
@@ -180,8 +239,8 @@ export async function PUT(request: NextRequest) {
     
     //! Validation
     // Dates compare
-    const newStartAt = startAt || session?.startAt;
-    const newEndAt = endAt || session?.endAt;
+    const newStartAt: Date = startAt || new Date(session?.startAt);
+    const newEndAt: Date = endAt || new Date(session?.endAt);
     if (newStartAt >= newEndAt) {
         return NextResponse.json(
             {
@@ -193,8 +252,8 @@ export async function PUT(request: NextRequest) {
     }
     
     //! Update Data
-    session.endAt = newEndAt;
-    session.startAt = newStartAt;
+    session.endAt = newEndAt.toString();
+    session.startAt = newStartAt.toString();
     if (title) session.title = title; 
     await session.save();
 

@@ -215,7 +215,7 @@ export async function GET(request: NextRequest) {
   // First, authenticate the user before proceeding
   const authResponse = await authenticate({
       request, 
-      allowedRoles: [UserRolesEnum.student]
+      allowedRoles: [UserRolesEnum.student, UserRolesEnum.doctor]
   });
   if (authResponse !== true) {
     // If authentication failed, return early
@@ -228,7 +228,18 @@ export async function GET(request: NextRequest) {
       const courseId = request.url.split('/').pop() || '';
      
       // find course
-      const course: ICourse | null = await Course.findById(courseId);
+      let course: ICourse | null = await Course.findById(courseId).populate([
+        {
+          path: "students",
+          model: "User",
+          select: "name email"
+        },
+        {
+          path: "doctorId",
+          model: "User",
+          select: "name email"
+        }
+      ]);
       if (!course) {
           return NextResponse.json(
               { success: false, msg: "هذا الكورس غير موجود" },
@@ -237,16 +248,31 @@ export async function GET(request: NextRequest) {
       }
 
       // Get all sessions for thsi course
-      const allCourseSessions: ISession[] = await Session.find({ courseId });
-      course.sessions = allCourseSessions;
-
-      console.log(course);
+      const allCourseSessions: ISession[] = await Session.find({ courseId }).populate([
+        {
+          path: "students",
+          model: "User",
+          select: "name email"
+        },
+        {
+          path: "doctorId",
+          model: "User",
+          select: "name email"
+        },
+        {
+          path: "courseId",
+          model: "Course",
+          select: "title students"
+        }
+      ]);
+      const courseWithSessions: ICourse = { ... course._doc, sessions: allCourseSessions };
+  
 
       return NextResponse.json(
           {
               success: true,
               msg: "",
-              data: course,
+              data: courseWithSessions,
           },
           { status: 200 }
       );

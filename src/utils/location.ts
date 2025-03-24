@@ -13,21 +13,4 @@ export const getDistance = (lat1: number, lon1: number, lat2: number, lon2: numb
   return R * c; // المسافة بالمتر
 }
 
-
-
-  // code client
-//   if ("geolocation" in navigator) {
-//     navigator.geolocation.getCurrentPosition(
-//       (position) => {
-//         const { latitude, longitude } = position.coords;
-//         console.log("✅ موقع الطالب:", latitude, longitude);
-//       },
-//       (error) => {
-//         console.error("❌ خطأ في جلب الموقع:", error.message);
-//       }
-//     );
-//   } else {
-//     console.error("❌ المتصفح لا يدعم تحديد الموقع الجغرافي.");
-//   }
-
   

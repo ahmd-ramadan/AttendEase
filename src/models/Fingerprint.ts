@@ -1,9 +1,10 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { IUser } from './User';
 
 export interface IFingerprint  extends Document {
     _id: string;
-    fingerprint: string;
-    userId: string;
+    visitorId: string;
+    userId: IUser;
 }
 
 const fingerprintSchema: Schema = new mongoose.Schema(
@@ -13,7 +14,7 @@ const fingerprintSchema: Schema = new mongoose.Schema(
       ref: "User",
       requred: true,
     },
-    fingerprint: {
+    visitorId: {
       type: String,
       required: true
     },

@@ -1,6 +1,7 @@
 'use client'
 
 import CoursesLayout from "@/components/CoursesLayout";
+import Spinner from "@/components/Spinner";
 import { ICourse } from "@/models/Course";
 import { getData } from "@/utils/apiService";
 import { getTokenCookiesData } from "@/utils/cookies";
@@ -10,6 +11,8 @@ import toast from "react-hot-toast";
 
 const CoursesPage = () => {
 
+    const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
+    const [isCoursesLoading, setCoursesLoading] = useState<boolean>(true);
     const [isLoggedInUser, setIsLoggedInUser] = useState<boolean>(false);
     const [courses, setCourses] = useState<ICourse[]>([])
     const [userData, setUserData] = useState<ITokenPayload | null>(null);
@@ -39,10 +42,25 @@ const CoursesPage = () => {
                 }
             } catch(err) {
                 console.log(err);
+            } finally {
+                setCoursesLoading(false);
             }
         }
-        if (isLoggedInUser) getAllCourses();
-    }, [isLoggedInUser])
+        if (isLoggedInUser && userData) getAllCourses();
+    }, [isLoggedInUser, userData])
+
+    useEffect(() => {
+        if (isLoggedInUser && userData && !isCoursesLoading) setIsPageLoading(false);
+    }, [isLoggedInUser, userData, isCoursesLoading])
+
+    if (isPageLoading) {
+        return (
+            <div className="w-full h-svh flex justify-center items-center">
+                <Spinner className="mx-auto" size="30px" />
+            </div>
+        )
+    }
+
 
     return (
         <div className="m-2">
