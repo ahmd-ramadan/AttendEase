@@ -1,14 +1,17 @@
 'use client'
 
 import { useEffect, useRef } from "react";
-import { NavList } from "./Header";
+import { INavList, NavList } from "./Header";
 import Link from "next/link";
+import { ITokenPayload } from "@/utils/token";
 
 interface ISideMenueProps {
-    setIsSideMenueOpen: (value: boolean) => void
+    setIsSideMenueOpen: (value: boolean) => void;
+    isLoggedInUser: boolean;
+    userData: ITokenPayload | null
 }
 
-const SideMenue = ({ setIsSideMenueOpen }: ISideMenueProps) => {
+const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueProps) => {
     const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -40,13 +43,41 @@ const SideMenue = ({ setIsSideMenueOpen }: ISideMenueProps) => {
             <div className="w-full flex flex-col items-center gap-3">
                 { NavList.map(({ name, link }, idx) => (
                     <Link
+                        key={idx}
                         className={`border-b border-gray-600 w-full py-3 px-3 text-center font-semibold text-lg`}
                         href={link}
+                        onClick={closeSideMenue}
                     >
                         { name }
                     </Link>
                 ))}
             </div>
+
+            { !isLoggedInUser &&
+                <div className="mt-auto  w-full flex flex-col items-center gap-3 mb-8">
+                    <Link
+                        href={"/login"}
+                        onClick={closeSideMenue}
+                        className="w-1/2 text-center font-semibold px-6 py-2 rounded-md bg-[var(--color-primary)] hover:bg-transparent border-2 border-[var(--color-primary)] text-white hover:text-[var(--color-primary)]"
+                    >
+                        تسجيل الدخول
+                    </Link>
+                    <Link
+                        href={"/signup"}
+                        onClick={closeSideMenue}
+                        className="w-1/2 text-center font-semibold px-6 py-2 rounded-md bg-[var(--color-secondary)] hover:bg-transparent border-2 border-[var(--color-secondary)] text-white hover:text-[var(--color-secondary)]"
+                    >
+                        إنشاء حساب
+                    </Link>
+                </div>
+            }
+            { isLoggedInUser && userData &&
+                <div className="mt-auto mb-20 text-center">
+                    <p className="text-lg font-semibold text-[var(--color-secondary)]">
+                        أهلا, {userData?.name} 👋
+                    </p>    
+                </div>
+            }
         </div>
     )
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import MainLayout from "@/components/MainLayout";
 
 const cairo = Cairo({ subsets: ['latin'], weight: ["500", "700", "900"] });
 
@@ -16,12 +17,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html lang="ar" dir="rtl">
       <body
         className={cairo.className}
       >
-        {children}
+        <MainLayout children={children} />
         <Toaster />
       </body>
     </html>

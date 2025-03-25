@@ -13,15 +13,24 @@ export interface INavList {
 }
 
 export const NavList: INavList[] = [
-    { name: 'كورساتي', link: '/courses' },
-    { name: 'جلسات الحضور', link: '/attends' }
+    { name: 'الرئيسية', link: '' },
+    { name: 'كورساتي', link: 'courses' },
+    { name: 'جلسات الحضور', link: 'sessions' }
 ]
 
 const Header = () => {
 
+    const [activePage, setActivePage] = useState<string>("");
     const [isSideMenueOpen, setIsSideMenueOpen] = useState<boolean>(false);
     const [isLoggedInUser, setIsLoggedInUser] = useState<boolean>(true);
     const [userData, setUserData] = useState<ITokenPayload | null>(null);
+
+    //! For first time page load
+    useEffect(() => {
+        const pageUrl = window.location.href.split('/');
+        const activePage = NavList.filter(({ link }) => pageUrl.includes(link) && link !== "")[0]?.link || "";    
+        setActivePage(activePage);
+    }, [])
 
     useEffect(() => {
         const getUserData = async () => {
@@ -33,7 +42,7 @@ const Header = () => {
     }, [])
 
     return (
-        <header className="bg-white" dir="rtl">
+        <div className="bg-white/75" dir="rtl">
             <div className="mx-auto flex h-16 max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
                 <Link className="block text-[var(--color-secondary)]" href="/">
                     <span className="sr-only">Home</span>
@@ -46,8 +55,10 @@ const Header = () => {
                             { NavList.map(({ name, link}, idx ) => (
                                 <li key={idx}>
                                     <Link 
-                                        className="font-semibold text-secondary transition hover:text-secondary/75 rounded-md p-2 hover:text-[var(--color-secondary)] hover:border hover:border-[var(--color-secondary)]" 
-                                        href={link}
+                                        onClick={() => setActivePage(link)}
+                                        key={idx}
+                                        className={`${ activePage === link ? 'text-[var(--color-secondary)]' : 'text-black' } font-semibold transition rounded-md p-2 hover:text-[var(--color-secondary)] hover:border hover:border-[var(--color-secondary)]`}
+                                        href={`/${link}`}
                                     > 
                                         {name} 
                                     </Link>
@@ -77,7 +88,7 @@ const Header = () => {
                         { isLoggedInUser && userData &&
                             <div className="">
                                 <p className="text-lg font-semibold text-[var(--color-secondary)]">
-                                    أهلا, {userData?.name}
+                                    أهلا, {userData?.name} 👋
                                 </p>    
                             </div>
                         }
@@ -103,8 +114,15 @@ const Header = () => {
                 </div>
             </div>
             
-            { isSideMenueOpen ? <SideMenue setIsSideMenueOpen={ setIsSideMenueOpen }/> : null }
-        </header>
+            { isSideMenueOpen ? 
+                <SideMenue 
+                    setIsSideMenueOpen={setIsSideMenueOpen} 
+                    isLoggedInUser={isLoggedInUser} 
+                    userData={userData}
+                /> 
+                : null 
+            }
+        </div>
         
     )
 }

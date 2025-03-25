@@ -67,7 +67,7 @@ const AddSessionComponent = ({
             setIsLoading(true);
 
             let formData: IReqUpdateNewSession = {
-                courseId: course._id
+                courseId: course?._id || ""
             }
             if(newUpdatedSession.title) formData.title = newUpdatedSession.title;
             if(newUpdatedSession.endAt) formData.startAt = new Date(newUpdatedSession.startAt as string);

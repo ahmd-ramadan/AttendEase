@@ -1,6 +1,14 @@
-const MainBody = () => {
+import { ITokenPayload } from "@/utils/token";
+import Link from "next/link";
+
+interface IHomeBodyProps {
+    userData: ITokenPayload | null;
+    isLoggedInUser: boolean
+}
+
+const MainBody = ({ isLoggedInUser, userData }: IHomeBodyProps) => {
     return (
-        <section className="bg-white lg:grid lg:h-screen lg:place-content-center">
+        <section className="bg-white lg:grid lg:h-screen lg:place-content-center" dir="ltr">
             <div
                 className="mx-auto w-screen max-w-screen-xl px-4 py-16 sm:px-6 sm:py-24 flex flex-col gap-10 md:grid md:grid-cols-2 md:items-center md:gap-4 lg:px-8 lg:py-32"
             >
@@ -47,16 +55,17 @@ const MainBody = () => {
                     </p>
       
                     <div className="mt-4 w-full justify-center flex gap-4 sm:mt-6">
-                        <a
+                        <Link
+                            href={ isLoggedInUser ? '/courses' : '/login' }
                             className="inline-block rounded border border-[var(--color-primary)] bg-[var(--color-primary)] px-5 py-3 font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-secondary)] hover:border-[var(--color-secondary)]" 
-                            href="/login"
+                            
                         >
-                            سجل الأن
-                        </a>
+                            { isLoggedInUser ? "تصفح الكورسات" : "سجل الأن" }
+                        </Link>
                     </div>
                 </div>
             </div>
-      </section>
+        </section>
 
     )
 }

@@ -15,7 +15,7 @@ import Modal from "./Modal";
 import AddSessionComponent from "./AddSession";
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
-interface ICoursesLayoutProps {
+interface ICourseDetailsLayoutProps {
     course: ICourse | null;
     setCourse: (course: ICourse) => void;
     isLoggedInUser: boolean;
@@ -24,7 +24,7 @@ interface ICoursesLayoutProps {
 export type SessionUpdateStatusTypes = 'update' | 'add' | null;
 export type CourseUpdateStatusTypes = 'update' | 'add' | null;
 
-const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }: ICoursesLayoutProps) => {
+const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }: ICourseDetailsLayoutProps) => {
     const router = useRouter()
 
     const [selectedSession, setSelectedSession] = useState<ISession | null>(null)
@@ -192,10 +192,10 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
        title
     } = selectedCourse;
     return (
-        <div className="flex flex-col gap-3 p-2">
+        <div className="mt-20 flex flex-col gap-10 p-2">
             {/* Course Deatils */}
             <div
-                className="px-6 py-2 w-full flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border border-gray-500 rounded-md" 
+                className="px-6 py-2 w-full flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b-2 border-[var(--color-secondary)] rounded-md" 
             >
                 {/* General data */}
                 <div className="flex flex-col gap-4">
@@ -270,7 +270,7 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
                             </div>
                         }
                     </dl>
-                </div>
+                </div> 
 
                 {/* Operations */}
                 <div className="flex flex-row items-center sm:flex-col gap-3">
@@ -334,7 +334,7 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
 
             {/* Course Students Table */}
             { userData && userData.role === 'Doctor' && 
-                <div className="w-full flex flex-col gap-4 p-2 border border-gray-600 rounded-md">
+                <div className="w-full flex flex-col gap-4 p-2 border-b-2 border-[var(--color-secondary)] rounded-md">
                     <h3 className="text-xl font-bold text-[var(--color-secondary)]">الطلاب المشتركين</h3>
                 
                     <div className="relative overflow-x-auto">
@@ -356,22 +356,29 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
                                 </tr>
                             </thead>
                             <tbody>
-                                { students.map(({ name, email}, idx) => (
-                                    <tr key={idx} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
-                                        <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                            { name }
-                                        </th>
-                                        <td className="px-6 py-4">
-                                            { email }
-                                        </td>
-                                        {/* <td className="px-6 py-4">
-                                            Laptop
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            $2999
-                                        </td> */}
-                                    </tr>
-                                ))}
+                                {  students.length > 0 ? (
+                                        students.map(({ name, email }, idx) => (
+                                            <tr
+                                                key={idx}
+                                                className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+                                            >
+                                                <th
+                                                    scope="row"
+                                                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                                                >
+                                                    {name}
+                                                </th>
+                                                <td className="px-6 py-4">{email}</td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={2} className="px-6 py-4 text-center">
+                                                <p className="text-gray-500 text-lg font-bold">لا يوجد أي حضور حتى الأن</p>
+                                            </td>
+                                        </tr>
+                                    )
+                                }
                             </tbody>
                         </table>
                     </div>
@@ -401,15 +408,16 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
                             }
                         </button>
                     }
-                </div>    
+                </div>
+
                 { currentSessions && currentSessions.length ? 
                     <div 
-                        className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2"
+                        className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6"
                     >
                         { currentSessions.map(({ _id, title, students, createdAt, doctorId, courseId, startAt, endAt }, idx) => (
                             <div 
                                 key={idx}
-                                className="h-full flex flex-col gap-6 rounded-md border border-gray-300 hover:border-[var(--color-secondary)] p-2 shadow-sm sm:p-6"
+                                className="h-full flex flex-col gap-6 md:gap-10 rounded-3xl border border-t-[20px] border-t-[var(--color-primary)] border-gray-300 hover:border-[var(--color-secondary)] p-2 shadow-sm sm:p-6"
                             >
                                 <Link 
                                     href={`/sessions/${_id}`} 
@@ -494,7 +502,10 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
                                             </svg>
                                         </dt>
                             
-                                        <dd className="text-xs text-gray-700">{ formatDate({ date: startAt, withTime: true })} - {formatDate({ date: endAt, withTime: true })}</dd>
+                                        <dd className="text-xs text-gray-700 flex flex-col gap-1">
+                                            <p><strong>من</strong> { formatDate({ date: startAt, withTime: true })}</p>
+                                            <p><strong>إلي</strong> {formatDate({ date: endAt, withTime: true })}</p>
+                                        </dd>
                                     </div>
 
                                     { userData && userData?.role === 'Student' && students.some(std => std._id.toString() === userData?.userId.toString()) && 
@@ -557,7 +568,7 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
                                                     setSelectedSession(currentSessions[idx]);
                                                     setIsDeleteSessionModalOpen(true);
                                                 }}
-                                                className="p-2 rounded-md flex justify-center mx-auto w-full text-white hover:text-[var(--color-primary)] text-sm font-semibold bg-red-600 border border-red-600 hover:bg-transparent"
+                                                className="p-2 rounded-md flex justify-center mx-auto w-full text-white hover:text-[var(--color-primary)] text-sm font-semibold bg-gray-500 border border-gray-500 hover:bg-transparent hover:text-red-600"
                                             >
                                                 { 
                                                     isLoading && selectedSession?._id === _id? <div className="flex items-center gap-2">
@@ -581,7 +592,7 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
             {/* { currentSessions && currentSessions.length <= 0 }  */}
             
             {/* For Courses Modals */}
-            {/* Add Course Modal */}
+            {/* Update Course Modal */}
             <Modal
                 title={courseUpdateStatus === 'add' ? "إضافة كورس جديد" : "تعديل الكورس"}
                 isOpen={isAddCourseModalOpen}

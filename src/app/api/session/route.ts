@@ -3,6 +3,7 @@ import dbConnect from "@/lib/dbConnection";
 import { authenticate } from "@/middlewares/auth";
 import { UserRolesEnum } from "@/models/User";
 import Session, { ISession } from "@/models/Session";
+import Course from "@/models/Course";
 
 interface IPostRequestBody {
     title: string;
@@ -108,35 +109,57 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    //For students
     const userId = request?.user?._id;
-    let query: any = {
-      students: userId
+    let sessions: ISession [] = [];
+
+    // For students -> all sessions for courses user participate in its
+    if (role === UserRolesEnum.student) {
+      // Find all courses where the student is enrolled
+      const courses = await Course.find({ students: userId }).select("_id");
+    
+      // Extract course IDs
+      const courseIds = courses.map(course => course._id);
+    
+      // Get all sessions for those courses
+      sessions = await Session.find({ courseId: { $in: courseIds } })
+        .populate([
+          { 
+            path: 'students', 
+            model: 'User',
+            select: 'name email' 
+          }, {
+            path: 'doctorId', 
+            model: 'User',
+            select: 'name email'
+          },
+          {
+            path: 'courseId',
+            model: 'Course',
+            select: 'title students'
+          }
+        ]);
     }
 
-    // For doctors
+    // For doctors -> all sessions created by doctor
     if (role === UserRolesEnum.doctor) { 
-      query = { doctorId: userId }
+      sessions = await Session.find({ doctorId: userId })
+      .populate([
+        { 
+          path: 'students', 
+          model: 'User',
+          select: 'name email' 
+        }, {
+          path: 'doctorId', 
+          model: 'User',
+          select: 'name email'
+        },
+        {
+          path: 'courseId',
+          model: 'Course',
+          select: 'title students'
+        }
+      ]);
     }
-    
-    // get all sessions that participation in
-    const sessions = await Session.find(query)
-    .populate([
-      { 
-        path: 'students', 
-        model: 'User',
-        select: 'name email' 
-      }, {
-        path: 'doctorId', 
-        model: 'User',
-        select: 'name email'
-      },
-      {
-        path: 'courseId',
-        model: 'Course',
-        select: 'title students'
-      }
-    ]);
 
     // Check if creation failed
     if (sessions.length <= 0) {

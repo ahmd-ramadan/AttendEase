@@ -321,3 +321,67 @@ export async function DELETE(request: NextRequest) {
     }
 }
 
+// Get session
+export async function GET(request: NextRequest) {
+  // First, authenticate the user before proceeding
+  const authResponse = await authenticate({
+    request, 
+    allowedRoles: [UserRolesEnum.doctor, UserRolesEnum.student] 
+  });
+  if (authResponse !== true) {
+    // If authentication failed, return early
+    return authResponse;
+  }
+
+  await dbConnect();
+
+  try {
+
+    //! Get sessionId params
+    const sessionId: string = request.url.split('/').pop() || '';
+   
+    //! Get Session
+    const session: ISession | null = await Session.findById(sessionId).populate([
+      {
+        path: "students",
+        model: "User",
+        select: "name email"
+      },
+      {
+        path: "doctorId",
+        model: "User",
+        select: "name email"
+      },
+      {
+        path: "courseId",
+        model: "Course",
+        select: "title students"
+      }
+    ]);
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          success: false,
+          msg: "هذه الجلسة غير موجودة الان",
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        msg: "",
+        data: session,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error recoreding attend in session:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

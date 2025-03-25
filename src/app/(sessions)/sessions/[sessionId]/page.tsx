@@ -1,26 +1,26 @@
-'use client' 
+'use client'
 
-import CourseDetailsComponent from "@/components/CourseDetails";
+import SessionDetailsComponent from "@/components/SessionDetails";
 import Spinner from "@/components/Spinner";
-import { ICourse } from "@/models/Course";
+import { ISession } from "@/models/Session";
 import { getData } from "@/utils/apiService";
 import { getTokenCookiesData } from "@/utils/cookies";
 import { ITokenPayload } from "@/utils/token";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-interface ICourseDetailsProps {
+interface ISessionDetailsProps {
     params: {
-        courseId: string;
+        sessionId: string;
     }
 }
 
-const CourseDetailsPage = ({ params: { courseId } }: ICourseDetailsProps) => {
+const SessionDetailsPage = ({ params: { sessionId } }: ISessionDetailsProps) => {
 
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [courseErrorMsg, setCourseErrorMsg] = useState("");
+    const [sessionErrorMsg, setSessionErrorMsg] = useState("");
     const [isLoggedInUser, setIsLoggedInUser] = useState<boolean>(false);
-    const [course, setCourse] = useState<ICourse | null>(null)
+    const [session, setSession] = useState<ISession | null>(null)
     const [userData, setUserData] = useState<ITokenPayload | null>(null);
 
     useEffect(() => {
@@ -35,28 +35,28 @@ const CourseDetailsPage = ({ params: { courseId } }: ICourseDetailsProps) => {
     }, [])
 
     useEffect(() => {
-        const getCourse = async () => {
+        const getSession = async () => {
             try {
-                const { success, msg, data }: any = await getData<ICourse>({
-                    endpoint: `/course/${courseId}`
+                const { success, msg, data }: any = await getData<ISession>({
+                    endpoint: `/session/${sessionId}`
                 });
                 
                 if(success) {
-                    setCourse(data)
+                    setSession(data)
                 } else {
-                    setCourseErrorMsg(msg || "هذا الكورس غير موجود الأن")
+                    setSessionErrorMsg(msg || "هذه الجلسة غير موجودة الان");
                     // if(msg) toast.error(msg)
                 }
             } catch(err) {
                 console.log(err);
             }
         }
-        if (isLoggedInUser) getCourse();
+        if (isLoggedInUser) getSession();
     }, [isLoggedInUser])
 
     useEffect(() => {
-        if (isLoggedInUser && (course || courseErrorMsg.length)) setIsLoading(false);
-    }, [isLoggedInUser, course, courseErrorMsg])
+        if (isLoggedInUser && (session || sessionErrorMsg.length)) setIsLoading(false);
+    }, [isLoggedInUser, session, sessionErrorMsg])
 
 
     if (isLoading) {
@@ -67,19 +67,19 @@ const CourseDetailsPage = ({ params: { courseId } }: ICourseDetailsProps) => {
         )
     }
 
-    if (courseErrorMsg) {
+    if (sessionErrorMsg) {
         return (
             <div className="flex justify-center items-center w-full h-svh">
-                <p className="text-gray-500 text-lg font-bold text-center">{courseErrorMsg} !!</p>
+                <p className="text-gray-500 text-lg font-bold text-center">{sessionErrorMsg} !!</p>
             </div>
         )
     }
     
     return (
         <div className="m-2">
-            <CourseDetailsComponent 
-                course={course} 
-                setCourse={setCourse}
+            <SessionDetailsComponent 
+                session={session} 
+                setSession={setSession}
                 isLoggedInUser={isLoggedInUser}
                 userData={userData}
             />
@@ -87,4 +87,4 @@ const CourseDetailsPage = ({ params: { courseId } }: ICourseDetailsProps) => {
     )
 }
 
-export default CourseDetailsPage;
+export default SessionDetailsPage;

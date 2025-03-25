@@ -1,66 +1,116 @@
 'use client'
 
-import { ICourse } from "@/models/Course";
-import { formatDate } from "@/utils/date";
+import { ISession } from "@/models/Session";
 import { ITokenPayload } from "@/utils/token";
-import Link from "next/link";
-import Modal from "./Modal";
-import AddCourseComponent from "./AddCourse";
-import { useState } from "react";
-import Spinner from "./Spinner";
-import { deleteData, postData } from "@/utils/apiService";
+import { useEffect, useState } from "react";
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import toast from "react-hot-toast";
+import { deleteData, postData } from "@/utils/apiService";
+import Link from "next/link";
+import { formatDate } from "@/utils/date";
+import Spinner from "./Spinner";
+import Modal from "./Modal";
+import AddSessionComponent from "./AddSession";
 
-interface ICoursesLayoutProps {
-    courses: ICourse[];
-    setCourses: (course: ICourse[]) => void;
+interface ISessionLayoutProps {
+    sessions: ISession[];
+    setSessions: (session: ISession[]) => void;
     isLoggedInUser: boolean;
     userData: ITokenPayload | null
 }
-export type CourseUpdateStatusTypes = 'update' | 'add' | null;
+export type SessionUpdateStatusTypes = 'update' | 'add' | null;
 
-const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICoursesLayoutProps) => {
+const SessionsLayout = ({ sessions, setSessions, isLoggedInUser, userData }: ISessionLayoutProps) => {
 
-    const [selectedCourse, setSelectedCourse] = useState<ICourse>({} as ICourse);
-    const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState<boolean>(false);
-    const [isDeleteCourseModalOpen, setIsDeleteCourseModalOpen] = useState<boolean>(false);
-    const [courseUpdateStatus, setCourseUpdateStatus] = useState<CourseUpdateStatusTypes>(null);
-    const closeAddCourseModal = () => { setIsAddCourseModalOpen(false) }
-    const closeDeleteCourseModal = () => { setIsDeleteCourseModalOpen(false) }
+    const [selectedSession, setSelectedSession] = useState<ISession>({} as ISession);
+    const [isAddSessionModalOpen, setIsAddSessionModalOpen] = useState<boolean>(false);
+    const [isDeleteSessionModalOpen, setIsDeleteSessionModalOpen] = useState<boolean>(false);
+    const [sessionUpdateStatus, setSessionUpdateStatus] = useState<SessionUpdateStatusTypes>(null);
+    const closeAddSessionModal = () => { setIsAddSessionModalOpen(false) }
+    const closeDeleteSessionModal = () => { setIsDeleteSessionModalOpen(false) }
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const onParticipationInCourse = async (courseId :string) => {     
+    const [visitorId, setVisitorId] = useState<string>("");
+        const [location, setLocation] = useState(Object);
+    const handleInteraction = async () => {
+        // Initialize FingerprintJS
+        const fp = await FingerprintJS.load();
+        const result = await fp.get();
+        
+        // Retrieve the visitor identifier
+        const { visitorId } = result;
+        setVisitorId(visitorId);
+        // console.log('Visitor ID:', visitorId);
+    };
+    const getLocation = async () => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setLocation(position.coords)
+                    // console.log("✅ موقع الطالب:", latitude, longitude);
+                },
+                (error) => {
+                // console.error("❌ خطأ في جلب الموقع:", error.message);
+            }
+        )
+        } else {
+            // console.error("❌ المتصفح لا يدعم تحديد الموقع الجغرافي.");
+        }
+    }
+    
+    useEffect(() => {
+        const getData = async() => {
+            await handleInteraction();
+            await getLocation();
+        }
+        getData();
+    }, [])
+    const onRecordInSession = async (sessionId: string) => {
+        console.log("VistorId: ", visitorId)
+        console.log("Location: ", location.latitude, location.longitude);
+
+        if (!visitorId && !location) {
+            toast.error("البيانات غير مكتملة");
+            return null;
+        }
+
         try {
             setIsLoading(true);
-            const { success, msg, data: updatedCourse }: any = await postData({
-                endpoint: `/course/${courseId}`,
+            const { success, msg, data: newSession }: any = await postData({
+                endpoint: `/session/${sessionId}`,
                 data: {
-                    isParticipation: true
+                    visitorId,
+                    location: { 
+                        latitude: location.latitude,
+                        longitude: location.longitude
+                    }
                 }
             })
-
-            // const updatedCourse: ICourse = data;
+            
             if (success) {
-                toast.success(msg || "تم الإشتراك الكورس بنجاح");
-                setCourses(courses.map((c) => c._id.toString() === updatedCourse?._id.toString() ? updatedCourse : c))
+                toast.success(msg || "تم اشتراكك في الجلسة بنجاح");
+                setSessions(sessions.map((s) => s._id === sessionId ? newSession : s))
             } else {
-                toast.error(msg ||  "فشلت عملية إشتراكك في كورس جديد");
+                toast.error(msg ||  "فشلت عملية التسجيل");
             }
         } finally {
             setIsLoading(false);
         }
+
+
     }
 
-    const onDeleteCourse = async () => {        
+    const onDeleteSession = async () => {        
         try {
             setIsLoading(true);
-            const { success, msg, data: deletedCourse }: any = await deleteData({
-                endpoint: `/course/${selectedCourse._id}`,
+            const { success, msg, data: deletedSession }: any = await deleteData({
+                endpoint: `/session/${selectedSession?._id}`,
             })
             
             if (success) {
-                toast.success(msg || "تم حذف الكورس بنجاح");
-                setCourses(courses.filter((c) => c._id.toString() !== deletedCourse?._id.toString()))
+                toast.success(msg || "تم حذف السيشن بنجاح");
+                setSessions(sessions.filter((s) => s._id !== selectedSession?._id))
             } else {
                 toast.error(msg ||  "فشلت عملية الحذف");
             }
@@ -71,7 +121,7 @@ const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICours
 
     return (
         <div className="mt-8 flex flex-col gap-3 p-2">
-            {/* For Doctor Add Course Btn */}
+            {/* For Doctor Add Session Btn */}
             { isLoggedInUser && userData && userData.role === 'Doctor' &&
                 <div
                     className="w-full"
@@ -80,32 +130,32 @@ const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICours
                     <button
                         disabled={isLoading}
                         onClick={() => {
-                            setIsAddCourseModalOpen(true)
-                            setCourseUpdateStatus('add')
+                            setIsAddSessionModalOpen(true)
+                            setSessionUpdateStatus('add')
                         }}
                         className="bg-[var(--color-primary)] px-6 py-2 rounded-md border-2 border-[var(--color-primary)] text-white hover:text-[var(--color-primary)] hover:bg-transparent"
                     >
-                        إضافة كورس جديد
+                        إضافة جلسة جديد
                     </button>
                 </div>
             }
 
             <div className="w-full" dir="rtl">
-                <h1 className="text-xl font-bold text-[var(--color-secondary)]">كل الكورسات</h1>
+                <h1 className="text-xl font-bold text-[var(--color-secondary)]">كل الجلسات</h1>
             </div>
 
-            {/* For Show All courses */}
-            { courses && courses.length ?
+            {/* For Show All Sessions */}
+            { sessions && sessions.length ? 
                 <div 
-                    className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-6"
+                    className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6"
                 >
-                    { courses.map(({ _id, title, students, createdAt, doctorId }, idx) => (
+                    { sessions.map(({ _id, title, students, createdAt, doctorId, courseId, startAt, endAt }, idx) => (
                         <div 
                             key={idx}
                             className="h-full flex flex-col gap-6 md:gap-10 rounded-3xl border border-t-[20px] border-t-[var(--color-primary)] border-gray-300 hover:border-[var(--color-secondary)] p-2 shadow-sm sm:p-6"
                         >
                             <Link 
-                                href={`/courses/${_id}`} 
+                                href={`/sessions/${_id}`} 
                                 className="sm:flex sm:justify-between sm:gap-4 lg:gap-6"
                             >
                                 <div className="mt-4 sm:mt-0">
@@ -114,10 +164,10 @@ const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICours
                                     </h3>
                                 </div>
                             </Link>
-                    
+                        
                             <dl className="flex-1 h-full flex flex-col gap-4">
                                 
-                                { userData && userData?.role === 'Student' &&
+                                {/* { userData && userData?.role === 'Student' &&
                                     <div className="flex items-center gap-2">
                                         <dt className="text-gray-700 text-lg">
                                             <span className="sr-only"> Teach by </span>
@@ -132,7 +182,7 @@ const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICours
                             
                                         <dd className="text-xs text-gray-700">{ doctorId.name }</dd>
                                     </div> 
-                                }
+                                } */}
                         
                                 <div className="flex items-center gap-2">
                                     <dt className="text-gray-700">
@@ -175,68 +225,88 @@ const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICours
                                     <dd className="text-xs text-gray-700">{ formatDate({ date: createdAt })}</dd>
                                 </div>
 
-                                { userData && userData?.role === 'Student' && students.some(std => std.email === userData?.email) && 
+                                <div className="flex items-center gap-2">
+                                    <dt className="text-gray-700 text-lg">
+                                        <span className="sr-only"> Published at </span>
+                                        <svg  className="size-6" viewBox="0 0 19 19" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                                            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                            <g id="SVGRepo_iconCarrier"> 
+                                                <path fill="currentColor" fill-rule="evenodd" d="M161.960546,159.843246 L164.399107,161.251151 C164.637153,161.388586 164.71416,161.70086 164.580127,161.933013 C164.442056,162.172159 164.144067,162.258604 163.899107,162.117176 L161.419233,160.68542 C161.165323,160.8826 160.846372,161 160.5,161 C159.671573,161 159,160.328427 159,159.5 C159,158.846891 159.417404,158.291271 160,158.085353 L160,153.503423 C160,153.22539 160.231934,153 160.5,153 C160.776142,153 161,153.232903 161,153.503423 L161,158.085353 C161.582596,158.291271 162,158.846891 162,159.5 C162,159.6181 161.986351,159.733013 161.960546,159.843246 Z M160.5,169 C165.746705,169 170,164.746705 170,159.5 C170,154.253295 165.746705,150 160.5,150 C155.253295,150 151,154.253295 151,159.5 C151,164.746705 155.253295,169 160.5,169 Z M160.5,168 C165.19442,168 169,164.19442 169,159.5 C169,154.80558 165.19442,151 160.5,151 C155.80558,151 152,154.80558 152,159.5 C152,164.19442 155.80558,168 160.5,168 Z" transform="translate(-151 -150)"></path> 
+                                            </g>
+                                        </svg>
+                                    </dt>
+                        
+                                    <dd className="text-xs text-gray-700 flex flex-col gap-1">
+                                        <p><strong>من</strong> { formatDate({ date: startAt, withTime: true })}</p>
+                                        <p><strong>إلي</strong> {formatDate({ date: endAt, withTime: true })}</p>
+                                    </dd>
+                                </div>
+
+                                { userData && userData?.role === 'Student' && students.some(std => std._id.toString() === userData?.userId.toString()) && 
                                     <div className="flex items-center gap-2">
                                         <dt className="text-gray-700 text-lg">
                                             <span className="sr-only"> Published on </span>
                                             <p>&#9989;</p>
                                         </dt>
                             
-                                        <dd className="text-xs text-gray-700">مُسجل في الكورس</dd>
+                                        <dd className="text-xs text-gray-700">مُسجل حضور</dd>
                                     </div>
                                 }
 
-                                { userData && userData?.role === 'Student' && !students.some(std => std.email === userData?.email) && 
+                                {/* Operations On Sessions For Student */}
+                                { userData && userData?.role === 'Student' && !students.some(std => std._id.toString() === userData?.userId.toString()) && 
                                     <div className="mt-auto w-full">
                                         <button
-                                            disabled={isLoading && selectedCourse._id === _id}
+                                            disabled={isLoading && selectedSession?._id === _id}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setSelectedCourse(courses[idx])
-                                                onParticipationInCourse(_id);
+                                                setSelectedSession(sessions[idx])
+                                                onRecordInSession(_id);
                                             }}
                                             className="p-2 rounded-md flex justify-center mx-auto w-full text-white hover:text-[var(--color-primary)] text-sm font-semibold bg-[var(--color-primary)] border border-[var(--color-primary)] hover:bg-transparent"
                                         >
                                             { 
-                                                isLoading && selectedCourse._id === _id ? <div className="flex items-center gap-2">
-                                                    <span>جاٍر الإشتراك...</span> <Spinner /> 
+                                                isLoading && selectedSession?._id === _id ? <div className="flex items-center gap-2">
+                                                    <span>جاٍر التسجيل...</span> <Spinner /> 
                                                 </div> 
-                                                : "إشتراك"
+                                                : "تسجيل حضور"
                                             }
                                         </button>
                                     </div> 
                                 }
-
+                                
+                                {/* Operations On Sessions For Doctor */}
                                 { userData && userData?.role === 'Doctor' &&
                                     <div className="mt-auto w-full flex items-center gap-1">
                                         <button
-                                            disabled={isLoading && selectedCourse._id === _id}
+                                            disabled={isLoading && selectedSession?._id === _id}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setSelectedCourse(courses[idx]);
-                                                setCourseUpdateStatus('update');
-                                                setIsAddCourseModalOpen(true);
+                                                setSelectedSession(sessions[idx]);
+                                                setSessionUpdateStatus('update');
+                                                setIsAddSessionModalOpen(true);
                                             }}
                                             className="p-2 rounded-md flex justify-center mx-auto w-full text-white hover:text-[var(--color-primary)] text-sm font-semibold bg-[var(--color-primary)] border border-[var(--color-primary)] hover:bg-transparent"
                                         >
                                             { 
-                                                isLoading && selectedCourse._id === _id ? <div className="flex items-center gap-2">
+                                                isLoading && selectedSession?._id === _id ? <div className="flex items-center gap-2">
                                                     <span>جاٍر التعديل...</span> <Spinner /> 
                                                 </div> 
                                                 : "تعديل"
                                             }
                                         </button>
                                         <button
-                                            disabled={isLoading && selectedCourse._id === _id}
+                                            disabled={isLoading && selectedSession?._id === _id}
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setSelectedCourse(courses[idx]);
-                                                setIsDeleteCourseModalOpen(true);
+                                                setSelectedSession(sessions[idx]);
+                                                setIsDeleteSessionModalOpen(true);
                                             }}
                                             className="p-2 rounded-md flex justify-center mx-auto w-full text-white hover:text-[var(--color-primary)] text-sm font-semibold bg-red-600 border border-red-600 hover:bg-transparent"
                                         >
                                             { 
-                                                isLoading && selectedCourse._id === _id? <div className="flex items-center gap-2">
+                                                isLoading && selectedSession?._id === _id? <div className="flex items-center gap-2">
                                                     <span>جاٍر الحذف...</span> <Spinner /> 
                                                 </div> 
                                                 : "حذف"
@@ -248,43 +318,46 @@ const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICours
                         </div>
                     ))}
                 </div>
-                :  <div className="flex justify-center w-full mt-20">
-                    <p className="text-gray-500 text-lg font-bold text-center">لا يوجد أي كورسات في الوقت الحالي !</p>
+                : <div className="flex justify-center w-full mt-20">
+                    <p className="text-gray-500 text-lg font-bold text-center">لا يوجد أي جلسات في الوقت الحالي !</p>
                 </div>
             }
+        
 
             <Modal
-                title={courseUpdateStatus === 'add' ? "إضافة كورس جديد" : "تعديل الكورس"}
-                isOpen={isAddCourseModalOpen}
-                closeModal={closeAddCourseModal}
+                title={sessionUpdateStatus === 'add' ? "إضافة جلسة جديد" : "تعديل الجلسة"}
+                isOpen={isAddSessionModalOpen}
+                closeModal={closeAddSessionModal}
             >
-                <AddCourseComponent
-                    status={courseUpdateStatus} 
-                    updatedCourse={selectedCourse}
-                    courses={courses} 
-                    setCourses={setCourses}
+                <AddSessionComponent 
+                    status={sessionUpdateStatus} 
+                    updatedSession={selectedSession}
+                    sessions={sessions} 
+                    setSessions={setSessions}
+                    course={selectedSession.courseId}
                 />
             </Modal>
+
             <Modal
-                title={"حذف الكورس"}
-                isOpen={isDeleteCourseModalOpen}
-                closeModal={closeDeleteCourseModal}
+                title={"حذف الجلسة"}
+                isOpen={isDeleteSessionModalOpen}
+                closeModal={closeDeleteSessionModal}
             >
                 <div className="w-full flex flex-col gap-4">
                     <p className="text-lg font-bold text-gray-600">
-                        هذا الإجراء لايمكن التراجع فيه .. هل تريد فعلياً حذف هذا الكورس 
+                        هذا الإجراء لايمكن التراجع فيه .. هل تريد فعلياً حذف هذا الجلسة 
                     </p>
 
                     <div className="text-left flex gap-4">
                         <button
-                            onClick={onDeleteCourse}
+                            onClick={onDeleteSession}
                             disabled={isLoading}
                             className="px-6 py-2 text-white font-semibold bg-red-600 rounded-md"
                         >
                             { isLoading ? <Spinner /> :  "حذف" }
                         </button>
                         <button
-                            onClick={closeDeleteCourseModal}
+                            onClick={closeDeleteSessionModal}
                             disabled={isLoading}
                             className="px-6 py-2 text-white font-semibold bg-[var(--color-primary)] rounded-md"
                         >
@@ -297,4 +370,4 @@ const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICours
     )
 }
 
-export default CoursesLayout;
+export default SessionsLayout;
