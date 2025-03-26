@@ -1,5 +1,6 @@
 import { jwtVerify, SignJWT } from "jose";
 import { UserRolesEnum } from "@/models/User";
+import { JwtPayload } from "jsonwebtoken";
 
 const JWT_SECRET = process.env.NEXT_PUBLIC_JWT_SECRET as string;
 const TOKEN_EXPIRES_TIME = process.env.NEXT_PUBLIC_TOKEN_EXPIRES_TIME || "30d";
@@ -49,7 +50,7 @@ export const generateToken = async (payload: ITokenPayload, expiresIn: string = 
     try {
         const secret = new TextEncoder().encode(JWT_SECRET);
 
-        const token = await new SignJWT(payload)
+        const token = await new SignJWT(payload as JwtPayload)
             .setProtectedHeader({ alg: "HS256" })
             .setExpirationTime(expiresIn) 
             .sign(secret);

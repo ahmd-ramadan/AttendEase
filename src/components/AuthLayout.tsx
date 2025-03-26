@@ -29,6 +29,7 @@ export interface IAuthFormInputsValue {
 const AuthLayout = ({ layoutFor }: IAuthLayoutProps) => {
     const router = useRouter();
 
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [formValues, setFormValues] = useState<IAuthFormInputsValue>({
         name: "",
         email: "",
@@ -39,6 +40,7 @@ const AuthLayout = ({ layoutFor }: IAuthLayoutProps) => {
 
     const Login = async () => {
         try {
+            setIsLoading(true);
             const { success, msg, data }: ApiResponse<IUser> = await postData<IUser>({
                 endpoint: '/auth/login',
                 data: {
@@ -53,11 +55,15 @@ const AuthLayout = ({ layoutFor }: IAuthLayoutProps) => {
             } else {
                 toast.error(msg || "فشل في تسجيل الدخول");
             }
-        } catch {}
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     const Signup = async () => {
         try {
+            setIsLoading(true)
+
             const { success, msg, data }: ApiResponse<IUser> = await postData<IUser>({
                 endpoint: '/auth/signup',
                 data: {
@@ -74,7 +80,9 @@ const AuthLayout = ({ layoutFor }: IAuthLayoutProps) => {
             } else {
                 toast.error(msg || "فشل في إنشاء الحساب ");
             }
-        } catch {}
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     const ForgetPassword = async () => {}
@@ -134,6 +142,7 @@ const AuthLayout = ({ layoutFor }: IAuthLayoutProps) => {
                             />
                             <button
                                 type="button"
+                                disabled={isLoading}
                                 onClick={() => setShowPassword(!showPassword)}
                                 className={`absolute inset-y-0 top-8 left-5 flex items-center text-gray-400`}
                             >
@@ -176,7 +185,8 @@ const AuthLayout = ({ layoutFor }: IAuthLayoutProps) => {
                         </div>
                     }
 
-                    <button 
+                    <button
+                        disabled={isLoading} 
                         type="submit" 
                         className="mt-4 bg-[var(--color-primary)] text-white font-medium py-2 rounded-md hover:bg-[var(--color-secondary)] transition-colors"
                     >

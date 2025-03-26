@@ -6,16 +6,13 @@ import { ISession } from "@/models/Session";
 import { getData } from "@/utils/apiService";
 import { getTokenCookiesData } from "@/utils/cookies";
 import { ITokenPayload } from "@/utils/token";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 
-interface ISessionDetailsProps {
-    params: {
-        sessionId: string;
-    }
-}
+const SessionDetailsPage = () => {
 
-const SessionDetailsPage = ({ params: { sessionId } }: ISessionDetailsProps) => {
+    const params = useParams();
+    const { sessionId } = params;
 
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [sessionErrorMsg, setSessionErrorMsg] = useState("");

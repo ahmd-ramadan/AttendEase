@@ -52,6 +52,14 @@ const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueP
         }
     }
 
+    //! For first time page load
+    const [activePage, setActivePage] = useState<string>("");
+    useEffect(() => {
+        const pageUrl = window.location.href.split('/');
+        const activePage = NavList.filter(({ link }) => pageUrl.includes(link) && link !== "")[0]?.link || "";    
+        setActivePage(activePage);
+    }, [])
+
     return (
         <div 
             ref={menuRef}
@@ -65,8 +73,8 @@ const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueP
                 { NavList.map(({ name, link }, idx) => (
                     <Link
                         key={idx}
-                        className={`border-b border-gray-600 hover:text-[var(--color-secondary)] w-full py-3 px-3 text-center font-semibold text-lg`}
-                        href={link}
+                        className={`${activePage === link ? 'text-[var(--color-secondary)]' : 'text-balck' } border-b border-gray-600 hover:text-[var(--color-secondary)] w-full py-3 px-3 text-center font-semibold text-lg`}
+                        href={`/${link}`}
                         onClick={closeSideMenue}
                     >
                         { name }

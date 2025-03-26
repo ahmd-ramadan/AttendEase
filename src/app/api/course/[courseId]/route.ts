@@ -210,77 +210,140 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// Get course details
+// // Get course details
+// export async function GET(request: NextRequest) {
+//   // First, authenticate the user before proceeding
+//   const authResponse = await authenticate({
+//       request, 
+//       allowedRoles: [UserRolesEnum.student, UserRolesEnum.doctor]
+//   });
+//   if (authResponse !== true) {
+//     // If authentication failed, return early
+//     return authResponse;
+//   }
+
+//   await dbConnect();
+
+//   try {
+//       const courseId = request.url.split('/').pop() || '';
+     
+//       // find course
+//       let course: ICourse | null = await Course.findById(courseId).lean().populate([
+//         {
+//           path: "students",
+//           model: "User",
+//           select: "name email"
+//         },
+//         {
+//           path: "doctorId",
+//           model: "User",
+//           select: "name email"
+//         }
+//       ]);
+//       if (!course) {
+//           return NextResponse.json(
+//               { success: false, msg: "هذا الكورس غير موجود" },
+//               { status: 400 }
+//           )
+//       }
+
+//       // Get all sessions for thsi course
+//       const allCourseSessions: ISession[] = await Session.find({ courseId }).populate([
+//         {
+//           path: "students",
+//           model: "User",
+//           select: "name email"
+//         },
+//         {
+//           path: "doctorId",
+//           model: "User",
+//           select: "name email"
+//         },
+//         {
+//           path: "courseId",
+//           model: "Course",
+//           select: "title students"
+//         }
+//       ]);
+//       const courseWithSessions: ICourse = { ... course?.toObject() as any, sessions: allCourseSessions };
+  
+
+//       return NextResponse.json(
+//           {
+//               success: true,
+//               msg: "",
+//               data: courseWithSessions,
+//           },
+//           { status: 200 }
+//       );
+//   } catch (error) {
+//       console.error("Error creating course:", error);
+//       return NextResponse.json(
+//           { success: false, error: "Internal server error" },
+//           { status: 500 }
+//       );
+//   }
+// }
+
 export async function GET(request: NextRequest) {
-  // First, authenticate the user before proceeding
+  // Authenticate user
   const authResponse = await authenticate({
-      request, 
-      allowedRoles: [UserRolesEnum.student, UserRolesEnum.doctor]
+    request,
+    allowedRoles: [UserRolesEnum.student, UserRolesEnum.doctor],
   });
+
   if (authResponse !== true) {
-    // If authentication failed, return early
     return authResponse;
   }
 
   await dbConnect();
 
   try {
-      const courseId = request.url.split('/').pop() || '';
-     
-      // find course
-      let course: ICourse | null = await Course.findById(courseId).populate([
-        {
-          path: "students",
-          model: "User",
-          select: "name email"
-        },
-        {
-          path: "doctorId",
-          model: "User",
-          select: "name email"
-        }
-      ]);
-      if (!course) {
-          return NextResponse.json(
-              { success: false, msg: "هذا الكورس غير موجود" },
-              { status: 400 }
-          )
-      }
+    // Extract course ID from URL
+    const courseId = request.url.split("/").pop() || "";
 
-      // Get all sessions for thsi course
-      const allCourseSessions: ISession[] = await Session.find({ courseId }).populate([
-        {
-          path: "students",
-          model: "User",
-          select: "name email"
-        },
-        {
-          path: "doctorId",
-          model: "User",
-          select: "name email"
-        },
-        {
-          path: "courseId",
-          model: "Course",
-          select: "title students"
-        }
-      ]);
-      const courseWithSessions: ICourse = { ... course._doc, sessions: allCourseSessions };
-  
+    // Fetch course and convert to plain object
+    let courseDoc = await Course.findById(courseId).populate([
+      { path: "students", model: "User", select: "name email" },
+      { path: "doctorId", model: "User", select: "name email" },
+    ]);
 
+    if (!courseDoc) {
       return NextResponse.json(
-          {
-              success: true,
-              msg: "",
-              data: courseWithSessions,
-          },
-          { status: 200 }
+        { success: false, msg: "هذا الكورس غير موجود" },
+        { status: 400 }
       );
+    }
+
+    // Convert Mongoose document to plain object
+    let course = courseDoc.toObject();
+
+    // Fetch and populate course sessions
+    const allCourseSessions: ISession[] = await Session.find({ courseId })
+      .populate([
+        { path: "students", model: "User", select: "name email" },
+        { path: "doctorId", model: "User", select: "name email" },
+        { path: "courseId", model: "Course", select: "title students" },
+      ])
+      .exec();
+
+    // Merge course data with sessions
+    course.sessions = allCourseSessions;
+
+    return NextResponse.json(
+      {
+        success: true,
+        msg: "",
+        data: course,
+      },
+      { status: 200 }
+    );
   } catch (error) {
-      console.error("Error creating course:", error);
-      return NextResponse.json(
-          { success: false, error: "Internal server error" },
-          { status: 500 }
-      );
+    console.error("Error fetching course details:", error);
+    return NextResponse.json(
+      { success: false, error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
+
