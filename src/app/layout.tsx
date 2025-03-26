@@ -6,11 +6,34 @@ import MainLayout from "@/components/MainLayout";
 
 const cairo = Cairo({ subsets: ['latin'], weight: ["500", "700", "900"] });
 
+export const generateMetadata = async(): Promise<Metadata> => {
+  
+  const  title = "حضرني";
+  const description = "استمتع بسهولة متابعة حضور الطلاب بدقة عالية وتقارير مفصلة تدعم إدارة الوقت وتنظيم الجداول.";
 
-export const metadata: Metadata = {
-  title: "حضرني",
-  description: "استمتع بسهولة متابعة حضور الطلاب بدقة عالية وتقارير مفصلة تدعم إدارة الوقت وتنظيم الجداول.",
-};
+  return {
+    title,
+    description,
+    icons: {
+        icon: ['/favicon.ico?v=4'],
+        apple: ['/apple-touch-icon.png?v=4'],
+        shortcut: ['/apple-touch-icon.png']
+    },
+    openGraph: {
+        title,
+        description,
+        type: 'website',
+        url: process.env.NEXT_PUBLIC_DOMAIN,
+        images: [{ url: "/logo.svg", width: 800, height: 600, alt: 'Image description' }]
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: ["/logo.svg"]
+    }
+  }
+}
 
 export default function RootLayout({
   children,

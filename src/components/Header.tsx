@@ -8,6 +8,10 @@ import { IUser } from "@/models/User";
 import { ITokenPayload } from "@/utils/token";
 import LogoIcon from "./Icons/Logo";
 import ToggleMenueIcon from "./Icons/ToggleMenue";
+import { postData } from "@/utils/apiService";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import Spinner from "./Spinner";
 
 export interface INavList {
     name: string;
@@ -20,8 +24,10 @@ export const NavList: INavList[] = [
     { name: 'جلسات الحضور', link: 'sessions' }
 ]
 
-const Header = () => {
+const Header = () => {  
+    const router = useRouter();
 
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [activePage, setActivePage] = useState<string>("");
     const [isSideMenueOpen, setIsSideMenueOpen] = useState<boolean>(false);
     const [isLoggedInUser, setIsLoggedInUser] = useState<boolean>(true);
@@ -42,6 +48,19 @@ const Header = () => {
         }
         getUserData();
     }, [])
+
+    const onLogout = async () => {
+        try {
+            const { success, msg, data }: any = await postData({
+                endpoint: '/auth/logout'
+            });
+
+            toast.success("تم تسجيل الخروج بنجاح");
+            router.push('/');
+        } finally {
+            setIsLoading(true);
+        }
+    }
 
     return (
         <div className="bg-white/75" dir="rtl">
@@ -88,10 +107,17 @@ const Header = () => {
                             </div>
                         }
                         { isLoggedInUser && userData &&
-                            <div className="">
+                            <div className="flex items-center gap-2">
                                 <p className="text-lg font-semibold text-[var(--color-secondary)]">
                                     أهلا, {userData?.name} 👋
                                 </p>    
+                                <button
+                                    disabled={isLoading}
+                                    className="hidden rounded-md bg-[var(--color-secondary)] px-5 py-2.5 text-sm font-semibold text-white border border-[var(--color-secondary)] transition hover:font-semibold hover:text-[var(--color-secondary)] sm:block hover:bg-transparent"
+                                    onClick={onLogout}
+                                >
+                                    { isLoading ? <Spinner /> :' تسجيل الخروج' }
+                                </button>
                             </div>
                         }
 

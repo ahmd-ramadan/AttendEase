@@ -1,10 +1,14 @@
 'use client'
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { INavList, NavList } from "./Header";
 import Link from "next/link";
 import { ITokenPayload } from "@/utils/token";
 import CloseIcon from "./Icons/Close";
+import Spinner from "./Spinner";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { postData } from "@/utils/apiService";
 
 interface ISideMenueProps {
     setIsSideMenueOpen: (value: boolean) => void;
@@ -13,8 +17,11 @@ interface ISideMenueProps {
 }
 
 const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueProps) => {
+    const router = useRouter();
     const menuRef = useRef<HTMLDivElement>(null);
 
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -32,6 +39,19 @@ const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueP
         setIsSideMenueOpen(false);
     }
 
+    const onLogout = async () => {
+        try {
+            const { success, msg, data }: any = await postData({
+                endpoint: '/auth/logout'
+            });
+
+            toast.success("تم تسجيل الخروج بنجاح");
+            router.push('/');
+        } finally {
+            setIsLoading(true);
+        }
+    }
+
     return (
         <div 
             ref={menuRef}
@@ -45,7 +65,7 @@ const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueP
                 { NavList.map(({ name, link }, idx) => (
                     <Link
                         key={idx}
-                        className={`border-b border-gray-600 w-full py-3 px-3 text-center font-semibold text-lg`}
+                        className={`border-b border-gray-600 hover:text-[var(--color-secondary)] w-full py-3 px-3 text-center font-semibold text-lg`}
                         href={link}
                         onClick={closeSideMenue}
                     >
@@ -73,10 +93,17 @@ const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueP
                 </div>
             }
             { isLoggedInUser && userData &&
-                <div className="mt-auto mb-20 text-center">
+                <div className="mt-auto mb-20 flex flex-col gap-2 text-center">
                     <p className="text-lg font-semibold text-[var(--color-secondary)]">
                         أهلا, {userData?.name} 👋
-                    </p>    
+                    </p>
+                    <button
+                        disabled={isLoading}
+                        className="rounded-md w-1/2 mx-auto flex justify-center bg-[var(--color-secondary)] p-2 text-sm font-semibold text-white border border-[var(--color-secondary)] transition hover:font-semibold hover:text-[var(--color-secondary)] hover:bg-transparent"
+                        onClick={onLogout}
+                    >
+                        { isLoading ? <Spinner /> :' تسجيل الخروج' }
+                    </button>    
                 </div>
             }
         </div>
