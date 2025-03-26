@@ -4,20 +4,19 @@ import { ICourse } from "@/models/Course";
 import { postData, putData } from "@/utils/apiService";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import Spinner from "./Spinner";
-import { CourseUpdateStatusTypes } from "./CoursesLayout";
-import Session, { ISession } from "@/models/Session";
-import { SessionUpdateStatusTypes } from "./CourseDetails";
-import { formatDate } from "@/utils/date";
+import Spinner from "../Spinner";
+import { ISession } from "@/models/Session";
+import { SessionUpdateStatusTypes } from "../Courses/CourseDetails";
 
 interface IAddSessionComponentProps {
     isSingleSession?: boolean;
+    isSessionsPage?: boolean;
     status: SessionUpdateStatusTypes;
     updatedSession?: ISession | null;
     setUpdatedSession?(session: ISession): void;
     sessions?: ISession[];
     setSessions?: (sessions: ISession[]) => void;
-    course: ICourse
+    course?: ICourse
 
 }
 
@@ -36,6 +35,7 @@ interface IReqUpdateNewSession {
 
 const AddSessionComponent = ({ 
     isSingleSession = false, 
+    isSessionsPage = false,
     status, 
     sessions, 
     setSessions, 
@@ -131,6 +131,9 @@ const AddSessionComponent = ({
                         required={status === "add"}
                     />
                 </div>
+
+                {/* Select Course to add courseId to session */}
+                { isSessionsPage && <div>dfff</div>}
                 <button
                   className="p-2 rounded-md flex justify-center mx-auto w-1/2 text-white hover:text-[var(--color-primary)] text-lg font-semibold bg-[var(--color-primary)] border border-[var(--color-primary)] hover:bg-transparent"
                 >

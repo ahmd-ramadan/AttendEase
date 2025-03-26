@@ -4,8 +4,8 @@ import { ICourse } from "@/models/Course";
 import { postData, putData } from "@/utils/apiService";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import Spinner from "./Spinner";
-import { CourseUpdateStatusTypes } from "./CoursesLayout";
+import Spinner from "../Spinner";
+import { CourseUpdateStatusTypes } from "./CourseCard";
 
 interface IAddCourseComponentProps {
     isSingleCourse?: boolean;

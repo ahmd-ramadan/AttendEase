@@ -1,6 +1,6 @@
 'use client'
 
-import SessionsLayout from "@/components/SessionsLayout";
+import SessionsLayout from "@/components/Sessions/SessionsLayout";
 import Spinner from "@/components/Spinner";
 import { ISession } from "@/models/Session";
 import { getData } from "@/utils/apiService";

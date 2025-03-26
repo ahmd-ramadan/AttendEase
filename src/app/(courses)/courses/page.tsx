@@ -1,6 +1,6 @@
 'use client'
 
-import CoursesLayout from "@/components/CoursesLayout";
+import CoursesLayout from "@/components/Courses/CoursesLayout";
 import Spinner from "@/components/Spinner";
 import { ICourse } from "@/models/Course";
 import { getData } from "@/utils/apiService";
