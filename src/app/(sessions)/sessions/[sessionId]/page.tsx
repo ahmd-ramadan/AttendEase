@@ -2,21 +2,23 @@
 
 import SessionDetailsComponent from "@/components/Sessions/SessionDetails";
 import Spinner from "@/components/Spinner";
-import { ISession } from "@/models/Session";
+import { ISession, ITokenPayload } from "@/interfaces";
+import { PageStatusTypes } from "@/types";
 import { getData } from "@/utils/apiService";
 import { getTokenCookiesData } from "@/utils/cookies";
-import { ITokenPayload } from "@/utils/token";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 const SessionDetailsPage = () => {
 
     const params = useParams();
     const { sessionId } = params;
 
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [sessionErrorMsg, setSessionErrorMsg] = useState("");
-    const [isLoggedInUser, setIsLoggedInUser] = useState<boolean>(false);
+    const router = useRouter();
+
+    const [pageStatus, setPageStatus] = useState<PageStatusTypes>('idle');
+    const [pageErrorMsg, setPageErrorMsg] = useState<string>("");
     const [session, setSession] = useState<ISession | null>(null)
     const [userData, setUserData] = useState<ITokenPayload | null>(null);
 
@@ -25,7 +27,8 @@ const SessionDetailsPage = () => {
             const data: ITokenPayload | null = await getTokenCookiesData();
             if(data) {
                 setUserData(data)
-                setIsLoggedInUser(true);
+            } else {
+                setPageStatus('failed')
             }
         }
         getUserData();
@@ -39,24 +42,21 @@ const SessionDetailsPage = () => {
                 });
                 
                 if(success) {
-                    setSession(data)
+                    setSession(data);
+                    setPageStatus(success);
                 } else {
-                    setSessionErrorMsg(msg || "هذه الجلسة غير موجودة الان");
-                    // if(msg) toast.error(msg)
+                    setPageErrorMsg(msg || "هذه الجلسة غير موجودة الان");
+                    setPageStatus('failed')
                 }
             } catch(err) {
+                setPageStatus('failed')
                 console.log(err);
             }
         }
-        if (isLoggedInUser) getSession();
-    }, [isLoggedInUser])
+        if (userData) getSession();
+    }, [userData])
 
-    useEffect(() => {
-        if (isLoggedInUser && (session || sessionErrorMsg.length)) setIsLoading(false);
-    }, [isLoggedInUser, session, sessionErrorMsg])
-
-
-    if (isLoading) {
+    if (pageStatus === 'idle' || pageStatus === 'loading') {
         return (
             <div className="w-full h-svh flex justify-center items-center">
                 <Spinner className="mx-auto" size="30px" />
@@ -64,12 +64,18 @@ const SessionDetailsPage = () => {
         )
     }
 
-    if (sessionErrorMsg) {
-        return (
-            <div className="flex justify-center items-center w-full h-svh">
-                <p className="text-gray-500 text-lg font-bold text-center">{sessionErrorMsg} !!</p>
-            </div>
-        )
+    if (pageStatus === 'failed') {
+        if (pageErrorMsg) {
+            return (
+                <div className="flex justify-center items-center w-full h-svh">
+                    <p className="text-gray-500 text-lg font-bold text-center">{pageErrorMsg} !!</p>
+                </div>
+            )
+        } else {
+            router.push('/login');
+            toast.success('برجاء تسجيل الدخول اولاً')
+            return null;
+        }
     }
     
     return (
@@ -77,7 +83,6 @@ const SessionDetailsPage = () => {
             <SessionDetailsComponent 
                 session={session} 
                 setSession={setSession}
-                isLoggedInUser={isLoggedInUser}
                 userData={userData}
             />
         </div>

@@ -1,7 +1,6 @@
 'use client'
 
-import { ISession } from "@/models/Session";
-import { ITokenPayload } from "@/utils/token";
+import { ISession, ITokenPayload } from "@/interfaces";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SessionUpdateStatusTypes } from "./SessionsLayout";
@@ -16,16 +15,16 @@ import StudentsIcon from "../Icons/Students";
 import TimeIcon from "../Icons/Time";
 import BagIcon from "../Icons/Bag";
 import Time2Icon from "../Icons/Time2";
+import { getRandomColor } from "@/utils/colors";
 
 interface ISessionCardProps {
-    isLoggedInUser: boolean;
     userData: ITokenPayload | null;
     session: ISession;
     sessions: ISession[];
     setSessions: (session: ISession[]) => void;
 }
 
-const SessionCard = ({ isLoggedInUser, userData, session, sessions, setSessions }: ISessionCardProps) => {
+const SessionCard = ({ userData, session, sessions, setSessions }: ISessionCardProps) => {
     const [isAddSessionModalOpen, setIsAddSessionModalOpen] = useState<boolean>(false);
     const [isDeleteSessionModalOpen, setIsDeleteSessionModalOpen] = useState<boolean>(false);
     const [sessionUpdateStatus, setSessionUpdateStatus] = useState<SessionUpdateStatusTypes>(null);
@@ -134,8 +133,12 @@ const SessionCard = ({ isLoggedInUser, userData, session, sessions, setSessions 
 
     return (
         <div 
-            className="h-full flex flex-col gap-6 md:gap-10 rounded-3xl border border-t-[20px] border-t-[var(--color-primary)] border-gray-300 hover:border-[var(--color-secondary)] p-2 shadow-sm sm:p-6"
-        >
+            className={`h-full flex flex-col gap-6 md:gap-10 rounded-3xl hover:bg-gray-300 p-2 shadow-sm sm:p-6`}
+            style={{ 
+                // borderTop: `20px solid ${getRandomColor()}`,
+                border: `15px solid ${getRandomColor()}`
+            }}
+        >   
             <Link 
                 href={`/sessions/${_id}`} 
                 className="sm:flex sm:justify-between sm:gap-4 lg:gap-6"

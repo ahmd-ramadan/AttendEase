@@ -1,15 +1,15 @@
 'use client'
 
-import { ICourse } from "@/models/Course";
+import { ICourse } from "@/interfaces";
 import { postData, putData } from "@/utils/apiService";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import Spinner from "../Spinner";
-import { CourseUpdateStatusTypes } from "./CourseCard";
+import { UpdatedComTypes } from "@/types";
 
 interface IAddCourseComponentProps {
     isSingleCourse?: boolean;
-    status: CourseUpdateStatusTypes;
+    status: UpdatedComTypes;
     updatedCourse?: ICourse;
     setUpdatedCourse?(course: ICourse): void;
     courses?: ICourse[];

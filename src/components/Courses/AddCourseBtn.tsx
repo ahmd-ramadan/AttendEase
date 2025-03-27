@@ -1,20 +1,17 @@
 'use client'
 
-import { ITokenPayload } from "@/utils/token";
+import { ITokenPayload, ICourse } from "@/interfaces";
 import { useState } from "react";
 import Modal from "../Modal";
 import AddCourseComponent from "./AddCourse";
-import { ICourse } from "@/models/Course";
 
 interface IAddCourseBtnProps {
-    isLoggedInUser: boolean;
     userData: ITokenPayload | null;
     courses?: ICourse[];
     setCourses?: (courses: ICourse[]) => void;
 }
 
 const AddCourseBtn = ({
-    isLoggedInUser,
     userData,
     courses,
     setCourses,
@@ -24,7 +21,7 @@ const AddCourseBtn = ({
     const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState<boolean>(false);
     const closeAddCourseModal = () => { setIsAddCourseModalOpen(false) }
 
-    if (isLoggedInUser && userData && userData.role === 'Doctor' ) {
+    if (userData && userData.role === 'Doctor' ) {
         return (
             <div
                 className="w-full"

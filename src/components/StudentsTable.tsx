@@ -1,13 +1,11 @@
-import { IUser } from "@/models/User";
-import { ITokenPayload } from "@/utils/token";
+import { IUser, ITokenPayload } from "@/interfaces";
 
 interface IStudentsTableProps {
     students: IUser[],
-    isLoggedInUser: boolean;
     userData: ITokenPayload | null;
 }
 
-const StudentsTable = ({ isLoggedInUser, userData, students }: IStudentsTableProps) => {
+const StudentsTable = ({ userData, students }: IStudentsTableProps) => {
     if (userData && userData.role === 'Doctor') {
         return (
             <div className="w-full flex flex-col gap-4 p-2 border-b-2 border-[var(--color-secondary)] rounded-md">

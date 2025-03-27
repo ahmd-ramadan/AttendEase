@@ -1,18 +1,6 @@
+import { UserRolesEnum } from '@/enums';
+import { IUser } from '@/interfaces';
 import mongoose, { Document, Schema } from 'mongoose';
-
-export enum UserRolesEnum {
-  student = "Student",
-  doctor = "Doctor",
-  admin = "Admin"
-}
-
-export interface IUser extends Document {
-  _id: string;
-  name: string;
-  email: string;
-  password: string;
-  role: UserRolesEnum;
-}
 
 const userSchema: Schema = new mongoose.Schema({
     name: {

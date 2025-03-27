@@ -1,17 +1,8 @@
+import { ITokenPayload } from "@/interfaces";
 import { jwtVerify, SignJWT } from "jose";
-import { UserRolesEnum } from "@/models/User";
-import { JwtPayload } from "jsonwebtoken";
 
-const JWT_SECRET = process.env.NEXT_PUBLIC_JWT_SECRET as string;
-const TOKEN_EXPIRES_TIME = process.env.NEXT_PUBLIC_TOKEN_EXPIRES_TIME || "30d";
-
-export interface ITokenPayload {
-    tokenId: string;
-    userId: string;
-    email: string;
-    name: string;
-    role: UserRolesEnum;
-}
+const JWT_SECRET = process.env.JWT_SECRET || "4f8a9f73d8eb76f30c9d9283c82315663a29875f299a72ab5e53652c705af9fe";
+const TOKEN_EXPIRES_TIME = process.env.TOKEN_EXPIRES_TIME || "30d";
 
 // export const generateToken = async (payload: ITokenPayload, expires: string = TOKEN_EXPIRES_TIME): Promise<string> => {
 //     if (!JWT_SECRET) {
@@ -50,7 +41,7 @@ export const generateToken = async (payload: ITokenPayload, expiresIn: string = 
     try {
         const secret = new TextEncoder().encode(JWT_SECRET);
 
-        const token = await new SignJWT(payload as JwtPayload)
+        const token = await new SignJWT(payload)
             .setProtectedHeader({ alg: "HS256" })
             .setExpirationTime(expiresIn) 
             .sign(secret);

@@ -1,4 +1,4 @@
-import { UserRolesEnum } from "@/models/User";
+import { UserRolesEnum } from "@/enums";
 import bcrypt from "bcrypt"
 
 export const generateSalt = async () => {

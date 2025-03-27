@@ -5,10 +5,10 @@ import { ReactNode, useEffect, useState } from "react";
 import Header from "./Header";
 import { usePathname } from "next/navigation";
 
-
 interface IMainLayoutProps {
     children: ReactNode;
 }
+
 const MainLayout = ({ children }: IMainLayoutProps) => {
 
     const pathname = usePathname();
@@ -28,7 +28,7 @@ const MainLayout = ({ children }: IMainLayoutProps) => {
                 <Header />
             </header>
             }
-            <main className={`${!isHidedHeaderPage ? 'mt-16' : ''}`}>
+            <main className={`${!isHidedHeaderPage ? 'mt-16' : ''} bg-gray-100`}>
                 { children }
             </main>
         </div>

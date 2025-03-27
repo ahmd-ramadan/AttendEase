@@ -1,14 +1,11 @@
 'use client'
 
-import { ICourse } from "@/models/Course";
-import { ISession } from "@/models/Session";
-import { ITokenPayload } from "@/utils/token";
+import { ICourse, ISession,  ITokenPayload } from "@/interfaces";
 import { useState } from "react";
 import AddSessionComponent from "./AddSession";
 import Modal from "../Modal";
 
 interface IAddSessionBtnProps {
-    isLoggedInUser: boolean;
     userData: ITokenPayload | null;
     isSessionsPage?: boolean;
     sessions?: ISession[];
@@ -18,7 +15,6 @@ interface IAddSessionBtnProps {
 }
 
 const AddSessionBtn = ({
-    isLoggedInUser,
     userData,
     isSessionsPage = false,
     sessions,
@@ -30,7 +26,7 @@ const AddSessionBtn = ({
     const [isAddSessionModalOpen, setIsAddSessionModalOpen] = useState<boolean>(false);
     const closeAddSessionModal = () => { setIsAddSessionModalOpen(false) }
 
-    if (isLoggedInUser && userData && userData.role === 'Doctor') {
+    if ( userData && userData.role === 'Doctor') {
         return (
             <div
                 className="w-full"

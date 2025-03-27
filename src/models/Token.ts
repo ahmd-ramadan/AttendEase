@@ -1,9 +1,5 @@
+import { IToken } from '@/interfaces';
 import mongoose, { Document, Schema } from 'mongoose';
-
-export interface IToken extends Document {
-    userId: string;
-    createdAt: Date;
-}
 
 const tokenSchema: Schema = new mongoose.Schema(
   {

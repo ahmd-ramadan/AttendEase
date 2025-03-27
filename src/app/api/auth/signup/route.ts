@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
-import User, { IUser, UserRolesEnum } from '@/models/User';
+import User from '@/models/User';
 import dbConnect from '@/lib/dbConnection';
 import { generatePassword, generateSalt } from '@/utils/auth';
 import Token from '@/models/Token';
 import { generateToken } from '@/utils/token';
 import { serialize } from 'cookie';
+import { UserRolesEnum } from '@/enums';
+import { IUser } from '@/interfaces';
 
 interface UserRequestBody {
   name: string;

@@ -1,9 +1,14 @@
 import dbConnect from "@/lib/dbConnection";
 import { authenticate } from "@/middlewares/auth";
-import Course, { ICourse } from "@/models/Course";
-import Session, { ISession } from "@/models/Session";
-import { UserRolesEnum } from "@/models/User";
+import Course from "@/models/Course";
+import Session from "@/models/Session";
+import { UserRolesEnum } from "@/enums";
+import { ISession } from "@/interfaces";
 import { NextRequest, NextResponse } from "next/server";
+
+interface ParticipationCourseRequestBody {
+  isParticipation: boolean
+}
 
 // Update course
 export async function PUT(request: NextRequest) {
@@ -131,9 +136,6 @@ export async function DELETE(request: NextRequest) {
     }
 }
 
-interface ParticipationCourseRequestBody {
-  isParticipation: boolean
-}
 // Student participate in course
 export async function POST(request: NextRequest) {
     // First, authenticate the user before proceeding
@@ -210,81 +212,7 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// // Get course details
-// export async function GET(request: NextRequest) {
-//   // First, authenticate the user before proceeding
-//   const authResponse = await authenticate({
-//       request, 
-//       allowedRoles: [UserRolesEnum.student, UserRolesEnum.doctor]
-//   });
-//   if (authResponse !== true) {
-//     // If authentication failed, return early
-//     return authResponse;
-//   }
-
-//   await dbConnect();
-
-//   try {
-//       const courseId = request.url.split('/').pop() || '';
-     
-//       // find course
-//       let course: ICourse | null = await Course.findById(courseId).lean().populate([
-//         {
-//           path: "students",
-//           model: "User",
-//           select: "name email"
-//         },
-//         {
-//           path: "doctorId",
-//           model: "User",
-//           select: "name email"
-//         }
-//       ]);
-//       if (!course) {
-//           return NextResponse.json(
-//               { success: false, msg: "هذا الكورس غير موجود" },
-//               { status: 400 }
-//           )
-//       }
-
-//       // Get all sessions for thsi course
-//       const allCourseSessions: ISession[] = await Session.find({ courseId }).populate([
-//         {
-//           path: "students",
-//           model: "User",
-//           select: "name email"
-//         },
-//         {
-//           path: "doctorId",
-//           model: "User",
-//           select: "name email"
-//         },
-//         {
-//           path: "courseId",
-//           model: "Course",
-//           select: "title students"
-//         }
-//       ]);
-//       const courseWithSessions: ICourse = { ... course?.toObject() as any, sessions: allCourseSessions };
-  
-
-//       return NextResponse.json(
-//           {
-//               success: true,
-//               msg: "",
-//               data: courseWithSessions,
-//           },
-//           { status: 200 }
-//       );
-//   } catch (error) {
-//       console.error("Error creating course:", error);
-//       return NextResponse.json(
-//           { success: false, error: "Internal server error" },
-//           { status: 500 }
-//       );
-//   }
-// }
-
+// Get course details
 export async function GET(request: NextRequest) {
   // Authenticate user
   const authResponse = await authenticate({

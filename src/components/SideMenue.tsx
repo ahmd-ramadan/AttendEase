@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from "react";
-import { INavList, NavList } from "./Header";
+import { NavList } from "./Header";
 import Link from "next/link";
-import { ITokenPayload } from "@/utils/token";
+import { ITokenPayload } from "@/interfaces";
 import CloseIcon from "./Icons/Close";
 import Spinner from "./Spinner";
 import toast from "react-hot-toast";
@@ -12,11 +12,11 @@ import { postData } from "@/utils/apiService";
 
 interface ISideMenueProps {
     setIsSideMenueOpen: (value: boolean) => void;
-    isLoggedInUser: boolean;
-    userData: ITokenPayload | null
+    userData: ITokenPayload | null;
+    setUserData: (userData: ITokenPayload | null) => void;
 }
 
-const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueProps) => {
+const SideMenue = ({ setIsSideMenueOpen, userData, setUserData }: ISideMenueProps) => {
     const router = useRouter();
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -41,14 +41,19 @@ const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueP
 
     const onLogout = async () => {
         try {
-            const { success, msg, data }: any = await postData({
-                endpoint: '/auth/logout'
+            setIsLoading(true)
+            const { success, msg, data }: any = await postData({ 
+                endpoint: "/auth/logout",
+                data: {
+                    userId: userData?.userId
+                }
             });
 
             toast.success("تم تسجيل الخروج بنجاح");
+            setUserData(null);
             router.push('/');
         } finally {
-            setIsLoading(true);
+            setIsLoading(false);
         }
     }
 
@@ -74,7 +79,7 @@ const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueP
                     <Link
                         key={idx}
                         className={`${activePage === link ? 'text-[var(--color-secondary)]' : 'text-balck' } border-b border-gray-600 hover:text-[var(--color-secondary)] w-full py-3 px-3 text-center font-semibold text-lg`}
-                        href={`/${link}`}
+                        href={userData && link !== "" ? `/${link}` : '/login'}
                         onClick={closeSideMenue}
                     >
                         { name }
@@ -82,7 +87,7 @@ const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueP
                 ))}
             </div>
 
-            { !isLoggedInUser &&
+            { !userData &&
                 <div className="mt-auto  w-full flex flex-col items-center gap-3 mb-8">
                     <Link
                         href={"/login"}
@@ -100,7 +105,7 @@ const SideMenue = ({ setIsSideMenueOpen, isLoggedInUser, userData }: ISideMenueP
                     </Link>
                 </div>
             }
-            { isLoggedInUser && userData &&
+            {  userData &&
                 <div className="mt-auto mb-20 flex flex-col gap-2 text-center">
                     <p className="text-lg font-semibold text-[var(--color-secondary)]">
                         أهلا, {userData?.name} 👋

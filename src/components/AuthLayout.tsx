@@ -1,6 +1,6 @@
 'use client'
 
-import { IUser } from "@/models/User";
+import { IUser } from "@/interfaces";
 import { ApiResponse, postData } from "@/utils/apiService";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,16 +9,13 @@ import toast from "react-hot-toast";
 import LogoIcon from "./Icons/Logo";
 import EyeOnIcon from "./Icons/EyeOn";
 import EyeOffIcon from "./Icons/EyeOff";
+import { UserRolesEnum } from "@/enums";
+import { AuthLayoutTypes } from "@/types";
 
-export type LayoutForTypes = 'login' | 'signup' | 'forget-password'; 
 export interface IAuthLayoutProps {
-    layoutFor: LayoutForTypes;
+    layoutFor: AuthLayoutTypes;
 }
 
-export enum UserRolesEnum {
-    student = "Student",
-    doctor = "Doctor"
-}
 export interface IAuthFormInputsValue {
     name: string;
     email: string;

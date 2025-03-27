@@ -1,33 +1,32 @@
 'use client'
 import HomeBody from "@/components/HomeBody";
+import { PageStatusTypes } from "@/types";
 import { getTokenCookiesData } from "@/utils/cookies";
-import { ITokenPayload } from "@/utils/token";
+import { ITokenPayload } from "@/interfaces";
 import { useEffect, useState } from "react";
 
 const HomePage = () =>  {
     
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [isLoggedInUser, setIsLoggedInUser] = useState<boolean>(true);
+    const [pageStatus, setPageStatus] = useState<PageStatusTypes>('idle');
     const [userData, setUserData] = useState<ITokenPayload | null>(null);
     
     useEffect(() => {
         const getUserData = async () => {
             const data: ITokenPayload | null = await getTokenCookiesData();
             if(data) setUserData(data);
-            else setIsLoggedInUser(false);
+            setPageStatus('success');
         }
         getUserData();
     }, [])
 
-    // useEffect(() => {
-    //     if (userData) setIsLoading(true)
-    // }, [userData])
+    if (pageStatus !== 'success') {
+        return null;
+    }
     
     return (
         <div className="flex flex-col gap-4">
             <HomeBody 
                 userData={userData}
-                isLoggedInUser={isLoggedInUser}
             />
         </div>
     );

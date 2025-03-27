@@ -1,8 +1,7 @@
 'use client'
 
-import { ISession } from "@/models/Session";
+import { ISession, ITokenPayload } from "@/interfaces";
 import { deleteData, postData } from "@/utils/apiService";
-import { ITokenPayload } from "@/utils/token";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -20,11 +19,10 @@ import Time2Icon from "../Icons/Time2";
 interface ISessionDetailsLayoutProps {
     session: ISession | null;
     setSession: (session: ISession) => void;
-    isLoggedInUser: boolean;
     userData: ITokenPayload | null
 }
 
-const SessionDetailsComponent = ({ session, setSession, isLoggedInUser, userData }: ISessionDetailsLayoutProps) => {
+const SessionDetailsComponent = ({ session, setSession, userData }: ISessionDetailsLayoutProps) => {
     const router = useRouter()
     
     const [selectedSession, setSelectedSession] = useState<ISession>(session as ISession)
@@ -201,7 +199,7 @@ const SessionDetailsComponent = ({ session, setSession, isLoggedInUser, userData
                                     <p>&#9989;</p>
                                 </dt>
                     
-                                <dd className="text-xs text-gray-700">مُسجل في الكورس</dd>
+                                <dd className="text-xs text-gray-700">مُسجل حضور هذه السيشن</dd>
                             </div>
                         }
                     </dl>
@@ -269,7 +267,6 @@ const SessionDetailsComponent = ({ session, setSession, isLoggedInUser, userData
             {/* Sessions Students Table */}
             <StudentsTable 
                 students={students}
-                isLoggedInUser={isLoggedInUser}
                 userData={userData}
             />
 

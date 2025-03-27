@@ -1,22 +1,19 @@
-import { ICourse } from "@/models/Course";
-import { ITokenPayload } from "@/utils/token";
+import { ICourse, ITokenPayload } from "@/interfaces";
 import CourseCard from "./CourseCard";
 import AddCourseBtn from "./AddCourseBtn";
 
 interface ICoursesLayoutProps {
     courses: ICourse[];
     setCourses: (course: ICourse[]) => void;
-    isLoggedInUser: boolean;
     userData: ITokenPayload | null
 }
 
-const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICoursesLayoutProps) => {
+const CoursesLayout = ({ courses, setCourses, userData }: ICoursesLayoutProps) => {
 
     return (
         <div className="mt-8 flex flex-col gap-3 p-2">
             {/* For Doctor Add Course Btn */}
             <AddCourseBtn 
-                isLoggedInUser={isLoggedInUser}
                 userData={userData}
                 courses={courses}
                 setCourses={setCourses}
@@ -34,7 +31,6 @@ const CoursesLayout = ({ courses, setCourses, isLoggedInUser, userData }: ICours
                     { courses.map((course, idx) => (
                         <CourseCard 
                             key={idx}
-                            isLoggedInUser={isLoggedInUser}
                             userData={userData}
                             courses={courses}
                             setCourses={setCourses}

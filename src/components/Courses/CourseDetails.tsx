@@ -1,14 +1,12 @@
 'use client'
 
-import { ICourse } from "@/models/Course";
+import { ICourse, ISession, ITokenPayload } from "@/interfaces";
 import { formatDate } from "@/utils/date";
-import { ITokenPayload } from "@/utils/token";
 import { useState } from "react";
 import Spinner from "../Spinner";
 import { deleteData, postData } from "@/utils/apiService";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { ISession } from "@/models/Session";
 import Modal from "../Modal";
 import SessionCard from "../Sessions/SessionCard";
 import AddCourseComponent from "./AddCourse";
@@ -17,24 +15,22 @@ import StudentsTable from "../StudentsTable";
 import BagIcon from "../Icons/Bag";
 import StudentsIcon from "../Icons/Students";
 import TimeIcon from "../Icons/Time";
+import { UpdatedComTypes } from "@/types";
 
 interface ICourseDetailsLayoutProps {
     course: ICourse | null;
     setCourse: (course: ICourse) => void;
-    isLoggedInUser: boolean;
     userData: ITokenPayload | null
 }
-export type SessionUpdateStatusTypes = 'update' | 'add' | null;
-export type CourseUpdateStatusTypes = 'update' | 'add' | null;
 
-const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }: ICourseDetailsLayoutProps) => {
+const CoursesDetailsComponent = ({ course, setCourse, userData }: ICourseDetailsLayoutProps) => {
     const router = useRouter()
 
     const [selectedCourse, setSelectedCourse] = useState<ICourse>(course as ICourse)
     const [currentSessions, setCurrentSessions] = useState<ISession[]>(course?.sessions || [])
     const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState<boolean>(false);
     const [isDeleteCourseModalOpen, setIsDeleteCourseModalOpen] = useState<boolean>(false);
-    const [courseUpdateStatus, setCourseUpdateStatus] = useState<CourseUpdateStatusTypes>(null);
+    const [courseUpdateStatus, setCourseUpdateStatus] = useState<UpdatedComTypes>(null);
 
     const closeAddCourseModal = () => { setIsAddCourseModalOpen(false) }
     const closeDeleteCourseModal = () => { setIsDeleteCourseModalOpen(false) }
@@ -210,7 +206,6 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
             {/* Course Students Table */}
             <StudentsTable 
                 students={students}
-                isLoggedInUser={isLoggedInUser}
                 userData={userData}
             />
 
@@ -219,7 +214,6 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
                 <div className="flex items-center gap-1 justify-between">
                     <h3 className="text-xl font-bold text-[var(--color-secondary)]">كل الجلسات</h3>
                     <AddSessionBtn
-                        isLoggedInUser={isLoggedInUser}
                         userData={userData}
                         course={course}
                     />
@@ -231,7 +225,6 @@ const CoursesDetailsComponent = ({ course, setCourse, isLoggedInUser, userData }
                     >
                         { currentSessions.map((session, idx) => (
                             <SessionCard 
-                                isLoggedInUser={isLoggedInUser}
                                 userData={userData}
                                 session={session}
                                 sessions={currentSessions}

@@ -2,18 +2,19 @@
 
 import SessionsLayout from "@/components/Sessions/SessionsLayout";
 import Spinner from "@/components/Spinner";
-import { ISession } from "@/models/Session";
+import { ISession, ITokenPayload } from "@/interfaces";
+import { PageStatusTypes } from "@/types";
 import { getData } from "@/utils/apiService";
 import { getTokenCookiesData } from "@/utils/cookies";
-import { ITokenPayload } from "@/utils/token";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 const SessionsPage = () => {
 
-    const [isPageLoading, setIsPageLoading] = useState<boolean>(true);
-    const [isSessionsLoading, setSessionsLoading] = useState<boolean>(true);
-    const [isLoggedInUser, setIsLoggedInUser] = useState<boolean>(false);
+    const router = useRouter();
+    const [pageStatus, setPageStatus] = useState<PageStatusTypes>('idle');
+    const [pageErrorMsg, setPageErrorMsg] = useState<string>("");
     const [sessions, setSessions] = useState<ISession[]>([])
     const [userData, setUserData] = useState<ITokenPayload | null>(null);
 
@@ -22,7 +23,8 @@ const SessionsPage = () => {
             const data: ITokenPayload | null = await getTokenCookiesData();
             if(data) {
                 setUserData(data)
-                setIsLoggedInUser(true);
+            } else {
+                setPageStatus('failed');
             }
         }
         getUserData();
@@ -37,25 +39,20 @@ const SessionsPage = () => {
                 
                 if(success) {
                     setSessions(data)
+                    setPageStatus('success');
                 } else {
-                    if(msg) toast.error(msg)
+                    setPageErrorMsg(msg);
+                    setPageStatus('failed')
                 }
             } catch(err) {
+                setPageStatus('failed');
                 console.log(err);
-            } finally {
-                setSessionsLoading(false);
             }
         }
-        if (isLoggedInUser && userData) getAllCourses();
-    }, [isLoggedInUser, userData])
+        if (userData) getAllCourses();
+    }, [userData])
 
-    useEffect(() => {
-        if (isLoggedInUser && userData && !isSessionsLoading) setIsPageLoading(false);
-    }, [isLoggedInUser, userData, isSessionsLoading])
-
-
-
-    if (isPageLoading) {
+    if (pageStatus === 'idle' || pageStatus === 'loading') {
         return (
             <div className="w-full h-svh flex justify-center items-center">
                 <Spinner className="mx-auto" size="30px" />
@@ -63,12 +60,25 @@ const SessionsPage = () => {
         )
     }
 
+    if (pageStatus === 'failed') {
+        if (pageErrorMsg) {
+            return (
+                <div className="flex justify-center items-center w-full h-svh">
+                    <p className="text-gray-500 text-lg font-bold text-center">{pageErrorMsg} !!</p>
+                </div>
+            )
+        } else {
+            router.push('/login');
+            toast.success('برجاء تسجيل الدخول اولاً')
+            return null;
+        }
+    }
+
     return (
         <div className="m-2">
             <SessionsLayout
                 sessions={sessions}
                 setSessions={setSessions}
-                isLoggedInUser={isLoggedInUser}
                 userData={userData}
             />
         </div>

@@ -1,17 +1,16 @@
 'use client'
 
-import { ICourse } from "@/models/Course";
+import { ICourse, ISession } from "@/interfaces";
 import { postData, putData } from "@/utils/apiService";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import Spinner from "../Spinner";
-import { ISession } from "@/models/Session";
-import { SessionUpdateStatusTypes } from "../Courses/CourseDetails";
+import { UpdatedComTypes } from "@/types";
 
 interface IAddSessionComponentProps {
     isSingleSession?: boolean;
     isSessionsPage?: boolean;
-    status: SessionUpdateStatusTypes;
+    status: UpdatedComTypes;
     updatedSession?: ISession | null;
     setUpdatedSession?(session: ISession): void;
     sessions?: ISession[];

@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import CloseIcon from './Icons/Close';
 
-interface ModalProps {
+interface IModalProps {
     isOpen: boolean;
     closeModal: () => void;
     title?: string;
@@ -11,7 +11,7 @@ interface ModalProps {
     children: React.ReactNode;
 }
 
-const Modal = ({ isOpen, closeModal, title, children, bgColor="#fff", titleColor="var(--color-primary)", closeColor="#030712"}: ModalProps) => {
+const Modal = ({ isOpen, closeModal, title, children, bgColor="#fff", titleColor="var(--color-primary)", closeColor="#030712"}: IModalProps) => {
     const modalRef = useRef<HTMLDivElement>(null);
 
     if (!isOpen) return null;

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnection";
 import { authenticate } from "@/middlewares/auth";
-import { UserRolesEnum } from "@/models/User";
-import Session, { ISession } from "@/models/Session";
+import { UserRolesEnum } from "@/enums";
+import Session from "@/models/Session";
+import { ISession } from "@/interfaces";
 import Course from "@/models/Course";
 
 interface IPostRequestBody {

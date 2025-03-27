@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnection";
 import { authenticate } from "@/middlewares/auth";
-import { UserRolesEnum } from "@/models/User";
-import Session, { ISession } from "@/models/Session";
+import { UserRolesEnum } from "@/enums";
+import Session from "@/models/Session";
 import { getDistance } from "@/utils/location";
-import Fingerprint, { IFingerprint } from "@/models/Fingerprint";
+import Fingerprint from "@/models/Fingerprint";
+import { IFingerprint, ISession } from "@/interfaces"
 
 interface IPostRequestBody {
    location: {

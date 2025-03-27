@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnection";
-import Course, { ICourse } from "@/models/Course";
+import Course from "@/models/Course";
+import { ICourse } from "@/interfaces";
 import { authenticate } from "@/middlewares/auth";
-import { UserRolesEnum } from "@/models/User";
+import { UserRolesEnum } from "@/enums";
 
 // Create new course
 export async function POST(request: NextRequest) {

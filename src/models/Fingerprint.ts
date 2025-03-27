@@ -1,11 +1,7 @@
+import { IFingerprint } from '@/interfaces';
 import mongoose, { Document, Schema } from 'mongoose';
-import { IUser } from './User';
 
-export interface IFingerprint  extends Document {
-    _id: string;
-    visitorId: string;
-    userId: IUser;
-}
+
 
 const fingerprintSchema: Schema = new mongoose.Schema(
   {

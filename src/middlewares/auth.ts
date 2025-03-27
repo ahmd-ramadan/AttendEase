@@ -1,7 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import Token from "@/models/Token";
-import User, { UserRolesEnum } from "@/models/User";
+import User from "@/models/User";
 import { verifyToken } from "@/utils/token";
+import { UserRolesEnum } from "@/enums";
 
 declare module "next/server" {
   interface NextRequest {

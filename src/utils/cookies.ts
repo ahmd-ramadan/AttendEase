@@ -1,5 +1,6 @@
+import { ITokenPayload } from '@/interfaces';
 import { getData } from './apiService';
-import { ITokenPayload, verifyToken } from './token';
+import { verifyToken } from './token';
 
 export const getTokenCookiesData = async (): Promise<ITokenPayload | null> => {
     try {
@@ -20,4 +21,3 @@ export const getTokenCookiesData = async (): Promise<ITokenPayload | null> => {
         return null
     }
 }
-  

@@ -1,13 +1,12 @@
-import { ITokenPayload } from "@/utils/token";
+import { ITokenPayload } from "@/interfaces";
 import Link from "next/link";
 import HomePicIcon from "./Icons/HomePic";
 
 interface IHomeBodyProps {
     userData: ITokenPayload | null;
-    isLoggedInUser: boolean
 }
 
-const MainBody = ({ isLoggedInUser, userData }: IHomeBodyProps) => {
+const MainBody = ({ userData }: IHomeBodyProps) => {
     return (
         <section className="bg-white lg:grid lg:h-screen lg:place-content-center" dir="ltr">
             <div
@@ -28,11 +27,11 @@ const MainBody = ({ isLoggedInUser, userData }: IHomeBodyProps) => {
       
                     <div className="mt-4 w-full justify-center flex gap-4 sm:mt-6">
                         <Link
-                            href={ isLoggedInUser ? '/courses' : '/login' }
+                            href={ userData ? '/courses' : '/login' }
                             className="inline-block rounded border border-[var(--color-primary)] bg-[var(--color-primary)] px-5 py-3 font-medium text-white shadow-sm transition-colors hover:bg-[var(--color-secondary)] hover:border-[var(--color-secondary)]" 
                             
                         >
-                            { isLoggedInUser ? "تصفح الكورسات" : "سجل الأن" }
+                            { userData ? "تصفح الكورسات" : "سجل الأن" }
                         </Link>
                     </div>
                 </div>

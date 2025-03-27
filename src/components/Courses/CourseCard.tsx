@@ -1,7 +1,6 @@
 'use client'
 
-import { ICourse } from "@/models/Course";
-import { ITokenPayload } from "@/utils/token";
+import { ICourse,  ITokenPayload } from "@/interfaces";
 import Link from "next/link";
 import Spinner from "../Spinner";
 import toast from "react-hot-toast";
@@ -13,11 +12,10 @@ import AddCourseComponent from "./AddCourse";
 import BagIcon from "../Icons/Bag";
 import StudentsIcon from "../Icons/Students";
 import TimeIcon from "../Icons/Time";
-
-export type CourseUpdateStatusTypes = 'update' | 'add' | null;
+import { getRandomColor } from "@/utils/colors";
+import { UpdatedComTypes } from "@/types";
 
 interface ICourseCardProps {
-    isLoggedInUser: boolean;
     userData: ITokenPayload | null;
     course: ICourse;
     courses: ICourse[];
@@ -25,7 +23,6 @@ interface ICourseCardProps {
 }
 
 const CourseCard = ({ 
-    isLoggedInUser, 
     userData, 
     course, 
     courses, 
@@ -34,7 +31,7 @@ const CourseCard = ({
 
     const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState<boolean>(false);
     const [isDeleteCourseModalOpen, setIsDeleteCourseModalOpen] = useState<boolean>(false);
-    const [courseUpdateStatus, setCourseUpdateStatus] = useState<CourseUpdateStatusTypes>(null);
+    const [courseUpdateStatus, setCourseUpdateStatus] = useState<UpdatedComTypes>(null);
     const closeAddCourseModal = () => { setIsAddCourseModalOpen(false) }
     const closeDeleteCourseModal = () => { setIsDeleteCourseModalOpen(false) }
 
@@ -91,7 +88,11 @@ const CourseCard = ({
 
     return (
         <div 
-            className="h-full flex flex-col gap-6 md:gap-10 rounded-3xl border border-t-[20px] border-t-[var(--color-primary)] border-gray-300 hover:border-[var(--color-secondary)] p-2 shadow-sm sm:p-6"
+            className="h-full flex flex-col gap-6 md:gap-10 rounded-3xl p-2 shadow-sm sm:p-6 hover:bg-gray-100"
+            style={{ 
+                // borderTop: `20px solid ${getRandomColor()}`,
+                border: `15px solid ${getRandomColor()}`
+            }}
         >
             <Link 
                 href={`/courses/${_id}`} 

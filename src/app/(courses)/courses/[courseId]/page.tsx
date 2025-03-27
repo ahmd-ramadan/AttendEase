@@ -3,18 +3,21 @@
 import { useState, useEffect } from "react";
 import CourseDetailsComponent from "@/components/Courses/CourseDetails";
 import Spinner from "@/components/Spinner";
-import { ICourse } from "@/models/Course";
 import { getData } from "@/utils/apiService";
 import { getTokenCookiesData } from "@/utils/cookies";
-import { ITokenPayload } from "@/utils/token";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { PageStatusTypes } from "@/types";
+import { ICourse, ITokenPayload } from "@/interfaces";
   
 const CourseDetailsPage = () => {
     const params = useParams();
     const { courseId } = params;
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [courseErrorMsg, setCourseErrorMsg] = useState("");
-    const [isLoggedInUser, setIsLoggedInUser] = useState<boolean>(false);
+    
+    const router = useRouter();
+
+    const [pageStatus, setPageStatus] = useState<PageStatusTypes>('idle');
+    const [pageErrorMsg, setPageErrorMsg] = useState("");
     const [course, setCourse] = useState<ICourse | null>(null);
     const [userData, setUserData] = useState<ITokenPayload | null>(null);
   
@@ -23,7 +26,8 @@ const CourseDetailsPage = () => {
             const data: ITokenPayload | null = await getTokenCookiesData();
             if (data) {
                 setUserData(data);
-                setIsLoggedInUser(true);
+            } else {
+                setPageStatus('failed');
             }
         };
         getUserData();
@@ -32,27 +36,27 @@ const CourseDetailsPage = () => {
     useEffect(() => {
         const getCourse = async () => {
             try {
+                setPageStatus('loading');
                 const { success, msg, data }: any = await getData<ICourse>({
                     endpoint: `/course/${courseId}`,
                 });
 
                 if (success) {
                     setCourse(data);
+                    setPageStatus('success')
                 } else {
-                    setCourseErrorMsg(msg || "هذا الكورس غير موجود الأن");
+                    setPageErrorMsg(msg || "هذا الكورس غير موجود الأن");
+                    setPageStatus('failed');
                 }
             } catch (err) {
+                setPageStatus('failed')
                 console.log(err);
             }
         };
-        if (isLoggedInUser) getCourse();
-    }, [isLoggedInUser]);
+        if (userData) getCourse();
+    }, [userData]);
   
-    useEffect(() => {
-        if (isLoggedInUser && (course || courseErrorMsg.length)) setIsLoading(false);
-    }, [isLoggedInUser, course, courseErrorMsg]);
-
-    if (isLoading) {
+    if (pageStatus === 'idle' || pageStatus === 'loading') {
         return (
             <div className="w-full h-svh flex justify-center items-center">
                 <Spinner className="mx-auto" size="30px" />
@@ -60,12 +64,18 @@ const CourseDetailsPage = () => {
         );
     }
 
-    if (courseErrorMsg) {
-        return (
-            <div className="flex justify-center items-center w-full h-svh">
-                <p className="text-gray-500 text-lg font-bold text-center">{courseErrorMsg} !!</p>
-            </div>
-        );
+    if (pageStatus === 'failed') {
+        if (pageErrorMsg) {
+            return (
+                <div className="flex justify-center items-center w-full h-svh">
+                    <p className="text-gray-500 text-lg font-bold text-center">{pageErrorMsg} !!</p>
+                </div>
+            );
+        } else {
+            router.push('/login');
+            toast.success('برجاء تسجيل الدخول اولاً')
+            return null;
+        }
     }
   
     return (
@@ -73,7 +83,6 @@ const CourseDetailsPage = () => {
             <CourseDetailsComponent
                 course={course}
                 setCourse={setCourse}
-                isLoggedInUser={isLoggedInUser}
                 userData={userData}
             />
         </div>

@@ -1,12 +1,10 @@
-import { ISession } from "@/models/Session";
-import { ITokenPayload } from "@/utils/token";
+import { ISession, ITokenPayload } from "@/interfaces";
 import SessionCard from "./SessionCard";
 import AddSessionBtn from "./AddSessionBtn";
 
 interface ISessionLayoutProps {
     sessions: ISession[];
     setSessions: (session: ISession[]) => void;
-    isLoggedInUser: boolean;
     userData: ITokenPayload | null
 }
 export type SessionUpdateStatusTypes = 'update' | 'add' | null;
@@ -14,7 +12,6 @@ export type SessionUpdateStatusTypes = 'update' | 'add' | null;
 const SessionsLayout = ({ 
     sessions, 
     setSessions, 
-    isLoggedInUser, 
     userData 
 }: ISessionLayoutProps) => {
 
@@ -22,7 +19,6 @@ const SessionsLayout = ({
         <div className="mt-8 flex flex-col gap-3 p-2">
             {/* For Doctor Add Session Btn */}
             <AddSessionBtn 
-                isLoggedInUser={isLoggedInUser}
                 userData={userData}
                 isSessionsPage={true}
                 sessions={sessions}
@@ -42,7 +38,6 @@ const SessionsLayout = ({
                         <SessionCard 
                             key={idx}
                             session={session}
-                            isLoggedInUser={isLoggedInUser}
                             userData={userData}
                             sessions={sessions}
                             setSessions={setSessions}
