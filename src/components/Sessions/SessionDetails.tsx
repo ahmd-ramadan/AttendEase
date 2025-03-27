@@ -1,6 +1,6 @@
 'use client'
 
-import { ISession, ITokenPayload } from "@/interfaces";
+import { ILocation, ISession, ITokenPayload } from "@/interfaces";
 import { deleteData, postData } from "@/utils/apiService";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -30,6 +30,8 @@ const SessionDetailsComponent = ({ session, setSession, userData }: ISessionDeta
     const [isDeleteSessionModalOpen, setIsDeleteSessionModalOpen] = useState<boolean>(false);
     const closeAddSessionModal = () => { setIsAddSessionModalOpen(false) }
     const closeDeleteSessionModal = () => { setIsDeleteSessionModalOpen(false) }
+    const [isSuccessRecordModalOpen, setIsSuccessRecordModalOpen] = useState<boolean>(false)
+    const closeSuccessRecordModal = () => { setIsSuccessRecordModalOpen(false) }
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const onDeleteSession = async () => {        
         try {
@@ -50,7 +52,7 @@ const SessionDetailsComponent = ({ session, setSession, userData }: ISessionDeta
     }
 
     const [visitorId, setVisitorId] = useState<string>("");
-    const [location, setLocation] = useState(Object);
+    const [location, setLocation] = useState<ILocation | null>(null);
 
     const handleInteraction = async () => {
         // Initialize FingerprintJS
@@ -67,13 +69,18 @@ const SessionDetailsComponent = ({ session, setSession, userData }: ISessionDeta
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
-                    setLocation(position.coords)
+                    setLocation({ latitude, longitude })
                     // console.log("✅ موقع الطالب:", latitude, longitude);
                 },
                 (error) => {
                 // console.error("❌ خطأ في جلب الموقع:", error.message);
-            }
-        )
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            )
         } else {
             // console.error("❌ المتصفح لا يدعم تحديد الموقع الجغرافي.");
         }
@@ -88,8 +95,8 @@ const SessionDetailsComponent = ({ session, setSession, userData }: ISessionDeta
     }, [])
 
     const onRecordInSession = async () => {
-        console.log("VistorId: ", visitorId)
-        console.log("Location: ", location.latitude, location.longitude);
+        // console.log("VistorId: ", visitorId)
+        // console.log("Location: ", location?.latitude, location?.longitude);
 
         if (!visitorId && !location) {
             toast.error("البيانات غير مكتملة");
@@ -103,14 +110,15 @@ const SessionDetailsComponent = ({ session, setSession, userData }: ISessionDeta
                 data: {
                     visitorId,
                     location: { 
-                        latitude: location.latitude,
-                        longitude: location.longitude
+                        latitude: location?.latitude,
+                        longitude: location?.longitude
                     }
                 }
             })
             
             if (success) {
-                toast.success(msg || "تم اشتراكك في الجلسة بنجاح");
+                // toast.success(msg || "تم اشتراكك في الجلسة بنجاح");
+                setIsSuccessRecordModalOpen(true);
                 setSelectedSession(newSession)
             } else {
                 toast.error(msg ||  "فشلت عملية التسجيل");
@@ -312,6 +320,15 @@ const SessionDetailsComponent = ({ session, setSession, userData }: ISessionDeta
                             { isLoading ? <Spinner /> : "إلغاء" }
                         </button>
                     </div>
+                </div>
+            </Modal>
+            <Modal
+                isOpen={isSuccessRecordModalOpen}
+                closeModal={closeSuccessRecordModal}
+            >
+                <div className="h-40 flex flex-col gap-6 justify-center items-center">
+                    <p className="text-5xl">🎉✅</p>
+                    <p className="text-3xl font-bold text-center text-[var(--color-secondary)]">لقد تم تسجيل حضورك بنجاح</p>
                 </div>
             </Modal>
         </div>

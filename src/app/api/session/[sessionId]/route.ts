@@ -5,13 +5,10 @@ import { UserRolesEnum } from "@/enums";
 import Session from "@/models/Session";
 import { getDistance } from "@/utils/location";
 import Fingerprint from "@/models/Fingerprint";
-import { IFingerprint, ISession } from "@/interfaces"
+import { IFingerprint, ILocation, ISession } from "@/interfaces"
 
 interface IPostRequestBody {
-   location: {
-      latitude: Number; 
-      longitude: Number;
-    };  
+   location: ILocation;  
     visitorId: string;
 }
 

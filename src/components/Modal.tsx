@@ -20,7 +20,7 @@ const Modal = ({ isOpen, closeModal, title, children, bgColor="#fff", titleColor
         <div className={`mx-auto fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center z-50`}>
             <div
                 ref={modalRef}
-                className={`p-6 rounded-lg shadow-2xl w-[90%] md:w-[60%] relative`}
+                className={`p-6 rounded-lg shadow-2xl w-[90%] md:w-[50%] relative`}
                 style={{ backgroundColor: bgColor }}
                 role="dialog"
                 aria-modal="true"
@@ -34,7 +34,7 @@ const Modal = ({ isOpen, closeModal, title, children, bgColor="#fff", titleColor
                     </h2>
                     <CloseIcon size={30} onClick={closeModal} />
                 </div>
-                <div className="overflow-y-auto scrollbar max-h-96 lg:max-h-[500px] p-2 mt-4 text-gray">
+                <div className="overflow-y-auto scrollbar max-h-110 lg:max-h-[500px] p-2 mt-4 text-gray">
                     {children}
                 </div>
             </div>

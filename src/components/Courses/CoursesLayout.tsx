@@ -12,15 +12,15 @@ const CoursesLayout = ({ courses, setCourses, userData }: ICoursesLayoutProps) =
 
     return (
         <div className="mt-8 flex flex-col gap-3 p-2">
-            {/* For Doctor Add Course Btn */}
-            <AddCourseBtn 
-                userData={userData}
-                courses={courses}
-                setCourses={setCourses}
-            />
+            <div className="w-full flex justify-between items-center gap-2" dir="rtl">
+                <h1 className="w-fit text-xl font-bold text-[var(--color-secondary)]">كل الكورسات</h1>
 
-            <div className="w-full" dir="rtl">
-                <h1 className="text-xl font-bold text-[var(--color-secondary)]">كل الكورسات</h1>
+                {/* For Doctor Add Course Btn */}
+                <AddCourseBtn 
+                    userData={userData}
+                    courses={courses}
+                    setCourses={setCourses}
+                />
             </div>
 
             {/* For Show All courses */}

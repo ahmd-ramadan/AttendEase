@@ -1,8 +1,8 @@
 'use client'
 
-import { ICourse, ISession } from "@/interfaces";
-import { postData, putData } from "@/utils/apiService";
-import { useState } from "react";
+import { ICourse, ISession, ITokenPayload } from "@/interfaces";
+import { getData, postData, putData } from "@/utils/apiService";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Spinner from "../Spinner";
 import { UpdatedComTypes } from "@/types";
@@ -15,8 +15,8 @@ interface IAddSessionComponentProps {
     setUpdatedSession?(session: ISession): void;
     sessions?: ISession[];
     setSessions?: (sessions: ISession[]) => void;
-    course?: ICourse
-
+    course?: ICourse,
+    userData?: ITokenPayload;
 }
 
 interface IUpdateNewSession {
@@ -40,15 +40,35 @@ const AddSessionComponent = ({
     setSessions, 
     setUpdatedSession, 
     updatedSession,
-    course
+    course,
+    userData
 }: IAddSessionComponentProps) => {
-
+  
     const [newUpdatedSession, setNewUpdatedSession] = useState<IUpdateNewSession>(status === 'update' ? updatedSession || {} as IUpdateNewSession : {} as IUpdateNewSession);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [courses, setCourses] = useState<ICourse[]>([]);
+    const [selectedCourseId, setSelectedCourseId] = useState<string>(course?._id || "")
 
-    
+    useEffect(() => { 
+        const getCourses = async () => {
+            try {
+                const { success, msg, data }: any = await getData({
+                    endpoint: '/course?role=Doctor'
+                })
+
+                if (success) setCourses(data)
+                
+            } catch {}
+        }
+        if (isSessionsPage) getCourses();
+    }, [isSessionsPage])
     const onAddSession = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!selectedCourseId) {
+            toast.error("يجب عليك إختيار الكورس الذي تريد إضافة الجلسة له");
+            return null;
+        }
 
         if (newUpdatedSession?.title && newUpdatedSession?.title.length <= 4) {
             toast.error("ادخل عنوان معبر علي الأقل 5 أحرف");
@@ -66,7 +86,7 @@ const AddSessionComponent = ({
             setIsLoading(true);
 
             let formData: IReqUpdateNewSession = {
-                courseId: course?._id || ""
+                courseId: selectedCourseId
             }
             if(newUpdatedSession.title) formData.title = newUpdatedSession.title;
             if(newUpdatedSession.endAt) formData.startAt = new Date(newUpdatedSession.startAt as string);
@@ -132,7 +152,27 @@ const AddSessionComponent = ({
                 </div>
 
                 {/* Select Course to add courseId to session */}
-                { isSessionsPage && <div>dfff</div>}
+                {isSessionsPage && (
+                    <div className="flex flex-col gap-2">
+                        <label htmlFor="courseId">إختيار الكورس</label>
+                        <select
+                            id="courseId"
+                            value={selectedCourseId}
+                            onChange={(e) => setSelectedCourseId(e.target.value)}
+                            className="border focus:outline-[var(--color-primary)] border-gray-500 rounded-md p-2"
+                            required={status === "add"}
+                        >
+                            <option value="" disabled>اختر الكورس</option>
+                            {/* Select from all courses added by him */}
+                            {courses.filter((c) => c.doctorId?._id.toString() === userData?.userId.toString() ).map((course) => (
+                                <option key={course._id} value={course?._id || ""}>
+                                    {course?.title || "غير مسمي"}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
+
                 <button
                   className="p-2 rounded-md flex justify-center mx-auto w-1/2 text-white hover:text-[var(--color-primary)] text-lg font-semibold bg-[var(--color-primary)] border border-[var(--color-primary)] hover:bg-transparent"
                 >

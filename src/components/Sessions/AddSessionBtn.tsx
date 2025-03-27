@@ -53,6 +53,7 @@ const AddSessionBtn = ({
                         sessions={sessions} 
                         setSessions={setSessions}
                         course={course}
+                        userData={userData}
 
                     />
                 </Modal>

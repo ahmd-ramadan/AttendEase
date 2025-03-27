@@ -44,6 +44,11 @@ export interface ISession extends Document {
     students: IUser[],
 }
 
+export interface ILocation {
+    latitude: number;
+    longitude: number;
+}
+
 export interface IFingerprint  extends Document {
     _id: string;
     visitorId: string;

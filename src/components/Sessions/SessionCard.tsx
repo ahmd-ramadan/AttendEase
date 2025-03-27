@@ -1,6 +1,6 @@
 'use client'
 
-import { ISession, ITokenPayload } from "@/interfaces";
+import { ILocation, ISession, ITokenPayload } from "@/interfaces";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SessionUpdateStatusTypes } from "./SessionsLayout";
@@ -13,7 +13,6 @@ import Modal from "../Modal";
 import AddSessionComponent from "./AddSession";
 import StudentsIcon from "../Icons/Students";
 import TimeIcon from "../Icons/Time";
-import BagIcon from "../Icons/Bag";
 import Time2Icon from "../Icons/Time2";
 import { getRandomColor } from "@/utils/colors";
 
@@ -24,6 +23,7 @@ interface ISessionCardProps {
     setSessions: (session: ISession[]) => void;
 }
 
+
 const SessionCard = ({ userData, session, sessions, setSessions }: ISessionCardProps) => {
     const [isAddSessionModalOpen, setIsAddSessionModalOpen] = useState<boolean>(false);
     const [isDeleteSessionModalOpen, setIsDeleteSessionModalOpen] = useState<boolean>(false);
@@ -33,7 +33,9 @@ const SessionCard = ({ userData, session, sessions, setSessions }: ISessionCardP
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [visitorId, setVisitorId] = useState<string>("");
-    const [location, setLocation] = useState(Object);
+    const [location, setLocation] = useState<ILocation | null>(null);
+    const [isSuccessRecordModalOpen, setIsSuccessRecordModalOpen] = useState<boolean>(false)
+    const closeSuccessRecordModal = () => { setIsSuccessRecordModalOpen(false) }
     const handleInteraction = async () => {
         // Initialize FingerprintJS
         const fp = await FingerprintJS.load();
@@ -49,13 +51,18 @@ const SessionCard = ({ userData, session, sessions, setSessions }: ISessionCardP
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
-                    setLocation(position.coords)
+                    setLocation({ latitude, longitude })
                     // console.log("✅ موقع الطالب:", latitude, longitude);
                 },
                 (error) => {
                 // console.error("❌ خطأ في جلب الموقع:", error.message);
-            }
-        )
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            )
         } else {
             // console.error("❌ المتصفح لا يدعم تحديد الموقع الجغرافي.");
         }
@@ -69,8 +76,8 @@ const SessionCard = ({ userData, session, sessions, setSessions }: ISessionCardP
         getData();
     }, [])
     const onRecordInSession = async () => {
-        console.log("VistorId: ", visitorId)
-        console.log("Location: ", location.latitude, location.longitude);
+        // console.log("VistorId: ", visitorId)
+        // console.log("Location: ", location.latitude, location.longitude);
 
         if (!visitorId && !location) {
             toast.error("البيانات غير مكتملة");
@@ -84,14 +91,15 @@ const SessionCard = ({ userData, session, sessions, setSessions }: ISessionCardP
                 data: {
                     visitorId,
                     location: { 
-                        latitude: location.latitude,
-                        longitude: location.longitude
+                        latitude: location?.latitude,
+                        longitude: location?.longitude
                     }
                 }
             })
             
             if (success) {
-                toast.success(msg || "تم اشتراكك في الجلسة بنجاح");
+                // toast.success(msg || "تم تسجيل  حضورك في الجلسة بنجاح");
+                setIsSuccessRecordModalOpen(true);
                 setSessions(sessions.map((s) => s._id === session._id ? newSession : s))
             } else {
                 toast.error(msg ||  "فشلت عملية التسجيل");
@@ -133,7 +141,7 @@ const SessionCard = ({ userData, session, sessions, setSessions }: ISessionCardP
 
     return (
         <div 
-            className={`h-full flex flex-col gap-6 md:gap-10 rounded-3xl hover:bg-gray-300 p-2 shadow-sm sm:p-6`}
+            className={`h-full flex flex-col gap-6 md:gap-10 rounded-3xl hover:bg-gray-100 p-2 shadow-sm sm:p-6`}
             style={{ 
                 // borderTop: `20px solid ${getRandomColor()}`,
                 border: `15px solid ${getRandomColor()}`
@@ -301,6 +309,16 @@ const SessionCard = ({ userData, session, sessions, setSessions }: ISessionCardP
                             { isLoading ? <Spinner /> : "إلغاء" }
                         </button>
                     </div>
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={isSuccessRecordModalOpen}
+                closeModal={closeSuccessRecordModal}
+            >
+                <div className="h-40 flex flex-col gap-6 justify-center items-center">
+                    <p className="text-5xl">🎉✅</p>
+                    <p className="text-3xl font-bold text-center text-[var(--color-secondary)]">لقد تم تسجيل حضورك بنجاح</p>
                 </div>
             </Modal>
         </div>
